@@ -8,7 +8,7 @@ open WebSharper.UI.Server
 type EndPoint =
     | [<EndPoint "/">] Home
     | [<EndPoint "/about">] About
-    | [<EndPoint "/posts">] Posts of string
+    // | [<EndPoint "/posts">] Posts of string
 
 module Templating =
     open WebSharper.UI.Html
@@ -57,5 +57,5 @@ module Site =
             match endpoint with
             | EndPoint.Home -> HomePage ctx
             | EndPoint.About -> AboutPage ctx
-            | EndPoint.Blog (slug) -> BlogPost ctx slug
+            // | EndPoint.Blog (slug) -> BlogPost ctx slug
         )

@@ -1,3 +1,5 @@
+namespace Cookbook
 
-let blerp i =
-    println "hey %d" i
+module Blog =
+    let blerp i =
+        printfn "hey %d" i

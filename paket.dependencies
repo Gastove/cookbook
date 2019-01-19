@@ -2,8 +2,9 @@ source https://nuget.org/api/v2
 
 storage:none
 
-// nuget Microsoft.AspNetCore.All
-// nuget WebSharper
-// nuget WebSharper.FSharp
-// nuget WebSharper.UI
-// nuget WebSharper.AspNetCore
+nuget Microsoft.AspNetCore.All
+nuget FSharp.Core
+nuget WebSharper
+nuget WebSharper.FSharp
+nuget WebSharper.UI
+nuget WebSharper.AspNetCore
