@@ -6,6 +6,10 @@
         <WebProjectOutputDir>$(MSBuildThisFileDirectory)/wwwroot</WebProjectOutputDir>
     </PropertyGroup>
     <ItemGroup>
+        // Dropbox Integration
+        <Compile Include="../Dropbox/Dropbox.fs"/>
+        // XML/Post parsing
+        <Compile Include="../Xml/Xml.fs"/>
         <Compile Include="Blog.fs" />
         <Compile Include="Remoting.fs" />
         <Compile Include="Client.fs" />
