@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
         <WebSharperProject>Website</WebSharperProject>
         <WebProjectOutputDir>$(MSBuildThisFileDirectory)/wwwroot</WebProjectOutputDir>
     </PropertyGroup>
     <ItemGroup>
-        // Dropbox Integration
-        <Compile Include="../Dropbox/Dropbox.fs"/>
-        // XML/Post parsing
-        <Compile Include="../Xml/Xml.fs"/>
+        <!-- <Compile Include="../Dropbox/Dropbox.fs"/> -->
+        <!-- <Compile Include="../Xml/Xml.fs"/> -->
         <Compile Include="Blog.fs" />
         <Compile Include="Remoting.fs" />
         <Compile Include="Client.fs" />
         <Compile Include="Site.fs" />
         <Compile Include="Startup.fs" />
         <Content Include="Main.html" CopyToPublishDirectory="Always" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Dropbox\Dropbox.fsproj" />
+        <ProjectReference Include="..\Xml\Xml.fsproj" />
     </ItemGroup>
 
     <!-- <ItemGroup> -->
