@@ -2,8 +2,9 @@
 // *explodes* if I try to move these deps into paket. I'll need to fix that...
 // eventually.
 
-// Microsoft.AspNetCore.All
-// WebSharper
-// WebSharper.FSharp
-// WebSharper.UI
-// WebSharper.AspNetCore
+Microsoft.AspNetCore.All
+FSharp.Core
+WebSharper
+WebSharper.FSharp
+WebSharper.UI
+WebSharper.AspNetCore

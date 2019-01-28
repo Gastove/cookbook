@@ -2,8 +2,11 @@ source https://nuget.org/api/v2
 
 storage:none
 
-// nuget Microsoft.AspNetCore.All
-// nuget WebSharper
-// nuget WebSharper.FSharp
-// nuget WebSharper.UI
-// nuget WebSharper.AspNetCore
+nuget Dropbox.Api
+nuget FSharp.Core
+nuget FSharp.Data
+nuget Microsoft.AspNetCore.All
+nuget WebSharper
+nuget WebSharper.FSharp
+nuget WebSharper.UI
+nuget WebSharper.AspNetCore
