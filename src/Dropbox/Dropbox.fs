@@ -1,5 +1,7 @@
 namespace Cookbook.Dropbox
 
+type DbxClient = Dropbox.Api.DropboxClient
+
 
 module Auth =
 
@@ -39,7 +41,7 @@ module Files =
         |> dbxClient.Files.ListFolderAsync
         |> Async.AwaitTask
 
-    let loadFilAsync folder file (dbxClient : DropboxClient) =
+    let loadFileAsync folder file (dbxClient : DropboxClient) =
         [|folder; file|]
         |> IO.Path.Combine
         |> dbxClient.Files.DownloadAsync

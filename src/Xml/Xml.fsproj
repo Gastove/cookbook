@@ -3,11 +3,11 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
+
     <ItemGroup>
         <Compile Include="Xml.fs" />
     </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="FSharp.Data" Version="3.0.0" />
-    </ItemGroup>
+
     <Import Project="..\..\.paket\Paket.Restore.targets" />
+
 </Project>
