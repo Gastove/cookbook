@@ -16,8 +16,8 @@ before_script:
 build:
   stage: build
   script:
-    - docker pull $BUILD_CONTAINER_IMAGE:latest
-    - docker pull $APP_IMAGE:latest
+    - docker pull $BUILD_CONTAINER_IMAGE:latest || true
+    - docker pull $APP_IMAGE:latest || true
     - >
         docker build
         --cache-from $BUILD_CONTAINER_IMAGE:latest
