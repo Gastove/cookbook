@@ -14,7 +14,8 @@ before_script:
 build:
   stage: build
   script:
-    - docker pull $BUILD_CONTAINER_IMAGE:latest || true
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - docker pull $BUILD_CONTAINER_IMAGE:latest
     - >
       docker build --cache-from $BUILD_CONTAINER_IMAGE:latest
       --tag $BUILD_CONTAINER_IMAGE:$CI_COMMIT_SHA
