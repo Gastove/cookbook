@@ -5,8 +5,10 @@ COPY . /build
 RUN dotnet publish -c Release -o /app
 
 FROM build
-WORKDIR /app
 
-EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+WORKDIR /app
 
 ENTRYPOINT ["dotnet", "Cookbook.dll"]

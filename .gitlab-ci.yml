@@ -17,8 +17,10 @@ build:
   stage: build
   script:
     - docker pull $BUILD_CONTAINER_IMAGE:latest
+    - docker pull $APP_IMAGE:latest
     - >
-        docker build --cache-from $BUILD_CONTAINER_IMAGE:latest
+        docker build
+        --cache-from $BUILD_CONTAINER_IMAGE:latest
         --tag $BUILD_CONTAINER_IMAGE:$CI_COMMIT_SHA
         --tag $BUILD_CONTAINER_IMAGE:latest
         --file build/Dockerfile.Build .
@@ -26,6 +28,7 @@ build:
     - docker push $BUILD_CONTAINER_IMAGE:latest
     - >
         docker build
+        --cache-from $APP_IMAGE:latest
         --tag $APP_IMAGE:$APP_VERSION
         --tag $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:latest
