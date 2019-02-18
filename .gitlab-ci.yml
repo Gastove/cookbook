@@ -4,7 +4,7 @@ services:
   - docker:dind
 
 variables:
-  BUILD_CONTAINER_IMAGE: registry.gitlab.com/cookbook/builder
+  BUILD_CONTAINER_IMAGE: registry.gitlab.com/gastove/cookbook/builder
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
 
