@@ -1,0 +1,24 @@
+image: docker:stable
+
+services:
+  - docker:dind
+
+variables:
+  BUILD_CONTAINER_IMAGE: registry.gitlab.com/cookbook/builder
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+
+build:
+  stage: build
+  script:
+    - docker pull $BUILD_CONTAINER_IMAGE:latest || true
+    - >
+      docker build --cache-from $BUILD_CONTAINER_IMAGE:latest
+      --tag $BUILD_CONTAINER_IMAGE:$CI_COMMIT_SHA
+      --tag $BUILD_CONTAINER_IMAGE:latest
+      --file build/Dockerfile.Builder .
+    - docker push $BUILD_CONTAINER_IMAGE:$CI_COMMIT_SHA
+    - docker push $BUILD_CONTAINER_IMAGE:latest
