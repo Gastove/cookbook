@@ -1,0 +1,14 @@
+* Cookbook: Yet Another Dang Blog
+
+Or: Blogs! There are many, but this one is mine.
+
+* Things to Do
+
+** TODO Templates
+I need nesting templates for roughly the following:
+
+- [ ] Main page (index.html)
+- [ ] Post view
+
+** TODO Clean out all the auto-gen'd STUFF
+Okay, it's really good and cool that Websharper auto-gens a fully functional wobsite. And: BOY IS IT A LOT. I don't... need... the level of things provded, and many feel very in my way.
