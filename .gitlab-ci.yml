@@ -28,7 +28,8 @@ build:
         docker build
         --tag $APP_IMAGE:$APP_VERSION
         --tag $APP_IMAGE:$CI_COMMIT_SHA
+        --tag $APP_IMAGES:latest
         --file build/Dockerfile.App .
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
     - docker push $APP_IMAGE:$APP_VERSION
-
+    - docker push $APP_IMAGE:latest
