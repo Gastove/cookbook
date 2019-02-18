@@ -19,6 +19,6 @@ build:
       docker build --cache-from $BUILD_CONTAINER_IMAGE:latest
       --tag $BUILD_CONTAINER_IMAGE:$CI_COMMIT_SHA
       --tag $BUILD_CONTAINER_IMAGE:latest
-      --file build/Dockerfile.Builder .
+      --file build/Dockerfile.Build .
     - docker push $BUILD_CONTAINER_IMAGE:$CI_COMMIT_SHA
     - docker push $BUILD_CONTAINER_IMAGE:latest
