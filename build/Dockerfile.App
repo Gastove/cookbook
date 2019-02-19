@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/gastove/cookbook/builder:latest AS build
+FROM registry.gitlab.com/gastove/dotnet-builder:1.0 AS build
 
 WORKDIR /build
 COPY . /build
