@@ -1,3 +1,7 @@
+stages:
+  - build
+  - deploy
+
 variables:
   APP_IMAGE: registry.gitlab.com/gastove/cookbook/application
   APP_VERSION: 0.1.0
@@ -37,5 +41,4 @@ deploy:
     - mkdir ~/.kube
     - echo "$KUBECONFIG" > ~/.kube/config
     - kubectl -n "$NAMESPACE" apply -f deploy
-  dependencies:
-    - build
+  only: master
