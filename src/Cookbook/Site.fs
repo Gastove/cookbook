@@ -48,7 +48,10 @@ module Templating =
         Content.Page(
             PostTemplate()
                 .Title(post.Title)
+                .PostTitle(post.Title)
                 .Body(post.Body)
+                .PostDate(post.Meta.PublicationDate.ToLongDateString())
+                .Tags(post.Meta.Tags)
                 .Doc()
             )
 

@@ -1,5 +1,6 @@
 stages:
   - build
+  - push
   - deploy
 
 variables:
@@ -25,9 +26,18 @@ build:
         --tag $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:latest
         --file build/Dockerfile.App .
+
+push:
+  services:
+    - docker:dind
+  stage: push
+  image: docker:stable
+  script:
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
     - docker push $APP_IMAGE:$APP_VERSION
     - docker push $APP_IMAGE:latest
+  only:
+    - master
 
 deploy:
   stage: deploy
