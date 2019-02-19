@@ -30,6 +30,7 @@ build:
 push:
   services:
     - docker:dind
+  stage: push
   image: docker:stable
   script:
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
