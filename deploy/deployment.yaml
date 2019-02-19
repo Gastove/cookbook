@@ -28,15 +28,21 @@ spec:
         run: cookbook-webapp
     spec:
       containers:
-      - image: registry.gitlab.com/gastove/cookbook/application:latest
+        image: registry.gitlab.com/gastove/cookbook/application:latest
         imagePullPolicy: Always
         name: cookbook-webapp
         ports:
-        - containerPort: 8080
+          containerPort: 8080
           protocol: TCP
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        env:
+          name: DBX_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: dbx-credentials
+              key: dbx-access-token
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
