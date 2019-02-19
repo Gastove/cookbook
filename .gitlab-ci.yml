@@ -35,4 +35,4 @@ deploy:
     - mv ./kubectl /usr/local/bin/kubectl
     - mkdir ~/.kube
     - echo "$KUBECONFIG" > ~/.kube/config
-    - kubectl -n cookbook apply -f build/
+    - kubectl -n "$NAMESPACE" apply -f deploy
