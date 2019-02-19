@@ -1,6 +1,3 @@
-services:
-  - docker:dind
-
 variables:
   APP_IMAGE: registry.gitlab.com/gastove/cookbook/application
   APP_VERSION: 0.1.0
@@ -10,6 +7,8 @@ variables:
   KUBECTL_URL: https://storage.googleapis.com/kubernetes-release/release/v1.13.3/bin/linux/amd64/kubectl
 
 # build:
+  # services:
+  # - docker:dind
 # image: docker:stable
 #   stage: build
 #   script:
@@ -35,5 +34,5 @@ deploy:
     - chmod +x ./kubectl
     - mv ./kubectl /usr/local/bin/kubectl
     - mkdir ~/.kube
-    - cp $KUBECONFIG ~/.kube/config
+    - echo "$KUBECONFIG" > ~/.kube/config
     - kubectl -n $NAMESPACE apply -f build
