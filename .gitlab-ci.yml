@@ -31,6 +31,7 @@ push:
   services:
     - docker:dind
   image: docker:stable
+  script:
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
     - docker push $APP_IMAGE:$APP_VERSION
     - docker push $APP_IMAGE:latest
