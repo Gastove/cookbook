@@ -7,9 +7,9 @@ variables:
   KUBECTL_URL: https://storage.googleapis.com/kubernetes-release/release/v1.13.3/bin/linux/amd64/kubectl
 
 build:
-services:
-  - docker:dind
-image: docker:stable
+  services:
+    - docker:dind
+  image: docker:stable
   stage: build
   script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
