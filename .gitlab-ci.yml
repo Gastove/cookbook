@@ -9,26 +9,32 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   NAMESPACE: cookbook
+  KUBECTL_URL: https://storage.googleapis.com/kubernetes-release/release/v1.13.3/bin/linux/amd64/kubectl
 
 before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
-build:
-  stage: build
-  script:
-    - docker pull $APP_IMAGE:latest || true
-    - >
-        docker build
-        --cache-from $APP_IMAGE:latest
-        --tag $APP_IMAGE:$APP_VERSION
-        --tag $APP_IMAGE:$CI_COMMIT_SHA
-        --tag $APP_IMAGE:latest
-        --file build/Dockerfile.App .
-    - docker push $APP_IMAGE:$CI_COMMIT_SHA
-    - docker push $APP_IMAGE:$APP_VERSION
-    - docker push $APP_IMAGE:latest
+# build:
+#   stage: build
+#   script:
+#     - docker pull $APP_IMAGE:latest || true
+#     - >
+#         docker build
+#         --cache-from $APP_IMAGE:latest
+#         --tag $APP_IMAGE:$APP_VERSION
+#         --tag $APP_IMAGE:$CI_COMMIT_SHA
+#         --tag $APP_IMAGE:latest
+#         --file build/Dockerfile.App .
+#     - docker push $APP_IMAGE:$CI_COMMIT_SHA
+#     - docker push $APP_IMAGE:$APP_VERSION
+#     - docker push $APP_IMAGE:latest
 
 deploy:
-  image: lachlanevenson/k8s-kubectl:v1.13.3
   stage: deploy
-  script: kubectl -n $NAMESPACE apply -f build
+  script:
+    - curl -LO $KUBECTL_URL
+    - chmod +x ./kubectl
+    - mv ./kubectl /usr/local/bin/kubectl
+    - mkdir ~/.kube
+    - cp $KUBECONFIG ~/.kube/config
+    - kubectl -n $NAMESPACE apply -f build
