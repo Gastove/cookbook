@@ -41,4 +41,5 @@ deploy:
     - mkdir ~/.kube
     - echo "$KUBECONFIG" > ~/.kube/config
     - kubectl -n "$NAMESPACE" apply -f deploy
-  only: master
+  only:
+    - master
