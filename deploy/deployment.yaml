@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: cookbook-webapp
-          image: registry.gitlab.com/gastove/cookbook/application:latest
+          image: registry.gitlab.com/gastove/cookbook/application:REPLACE
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

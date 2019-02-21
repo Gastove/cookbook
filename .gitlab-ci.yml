@@ -40,6 +40,9 @@ deploy:
     - mv ./kubectl /usr/local/bin/kubectl
     - mkdir ~/.kube
     - echo "$KUBECONFIG" > ~/.kube/config
-    - kubectl -n "$NAMESPACE" apply -f deploy
+    # We deploy in three steps so we can update the image tag use in the deployment
+    - kubectl -n "$NAMESPACE" apply -f deploy/service.yaml
+    - kubectl -n "$NAMESPACE" apply -f deploy/namespace.yaml
+    - cat deploy/deployment.yaml | sed s/REPLACE/"$CI_COMMIT_SHA"/ | kubectl -n "$NAMESPACE" apply -
   only:
     - master
