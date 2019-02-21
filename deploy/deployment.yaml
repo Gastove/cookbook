@@ -47,6 +47,9 @@ spec:
                   name: dbx-credentials
                   key: dbx-access-token
 
+            - name: BLOG_DIR
+              value: "/blog/html"
+
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
