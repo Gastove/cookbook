@@ -8,6 +8,7 @@
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Blog.fs" />
+        <Compile Include="Config.fs" />
         <Compile Include="Remoting.fs" />
         <Compile Include="Client.fs" />
         <Compile Include="Site.fs" />
