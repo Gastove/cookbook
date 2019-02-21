@@ -25,9 +25,29 @@ build:
         --tag $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:latest
         --file build/Dockerfile.App .
+  except:
+    - master
+
+build_and_push:
+  services:
+    - docker:dind
+  image: docker:stable
+  stage: build
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker pull $APP_IMAGE:latest || true
+    - >
+        docker build
+        --cache-from $APP_IMAGE:latest
+        --tag $APP_IMAGE:$APP_VERSION
+        --tag $APP_IMAGE:$CI_COMMIT_SHA
+        --tag $APP_IMAGE:latest
+        --file build/Dockerfile.App .
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
     - docker push $APP_IMAGE:$APP_VERSION
     - docker push $APP_IMAGE:latest
+  only:
+    - master
 
 deploy:
   stage: deploy
@@ -43,6 +63,6 @@ deploy:
     # We deploy in three steps so we can update the image tag use in the deployment
     - kubectl -n "$NAMESPACE" apply -f deploy/service.yaml
     - kubectl -n "$NAMESPACE" apply -f deploy/namespace.yaml
-    - cat deploy/deployment.yaml | sed s/REPLACE/"$CI_COMMIT_SHA"/ | kubectl -n "$NAMESPACE" apply -
+    - cat deploy/deployment.yaml | sed s/REPLACE/"$CI_COMMIT_SHA"/ | kubectl -n "$NAMESPACE" apply -f -
   only:
     - master
