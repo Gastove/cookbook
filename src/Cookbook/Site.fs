@@ -58,7 +58,7 @@ module Templating =
 module Site =
     open WebSharper.UI.Html
 
-    let HomePage (cfg : Config.Configuration) =
+    let HomePage (cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
             let posts = Blog.loadAllPosts cfg.BlogDir client
@@ -66,7 +66,7 @@ module Site =
         | None -> Templating.Main [||]
 
 
-    let BlogPost (cfg : Config.Configuration) slug =
+    let BlogPost (cfg : Configuration) slug =
         let postFile = slug + ".html"
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
