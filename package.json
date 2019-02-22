@@ -1,0 +1,25 @@
+{
+  "name": "cookbook",
+  "version": "1.0.0",
+  "description": "I'm just here for sass",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/gastove/cookbook.git"
+  },
+  "keywords": [
+    "Blog"
+  ],
+  "author": "Ross Donaldson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/gastove/cookbook/issues"
+  },
+  "homepage": "https://gitlab.com/gastove/cookbook#readme",
+  "devDependencies": {
+    "sass": "^1.17.1"
+  }
+}
