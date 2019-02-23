@@ -34,6 +34,13 @@ module Xml =
     let loadPost path =
         IO.File.OpenRead(path)
 
+    let loadXmlDoc path =
+        let file = IO.File.OpenRead(path)
+        let reader = new IO.StreamReader(file)
+        let doc = Xml.XmlDocument()
+        doc.Load(reader)
+        doc
+
     let separatePostAndMeta (doc : string) =
         let startTag = "<POST-META>"
         let endTag = "</POST-META>"
@@ -66,3 +73,93 @@ module Xml =
 
             return separatePostAndMeta contents
         }
+
+
+module Feed =
+
+    open System
+
+    let hostName = "http://35.185.199.14/"
+    let blogPath = hostName + "blog/"
+
+    module Atom =
+
+        let loadBase() =
+            Xml.loadXmlDoc("atom.xml")
+
+        let postToItem (doc : Xml.XmlDocument) (post : BlogPost) =
+            let entry = doc.CreateElement("entry")
+            let title = doc.CreateElement("title")
+            let content = doc.CreateElement("content")
+
+            let link = doc.CreateElement("link")
+            let linkHref = doc.CreateAttribute("href")
+
+            let id = doc.CreateElement("id")
+            let summary = doc.CreateElement("summary")
+            let published = doc.CreateElement("published")
+
+            summary.InnerText <- post.Meta.Summary
+            title.InnerText <- post.Title
+            content.InnerText <- post.Body.ToString()
+            published.InnerText <- post.Meta.PublicationDate.ToString("s")
+            // TODO: Find a way not to hardcode like this :/
+            linkHref.Value <- blogPath + post.Meta.Slug
+            id.InnerText <- blogPath + post.Meta.Slug
+
+            entry.AppendChild(title) |> ignore
+            entry.AppendChild(summary) |> ignore
+            entry.AppendChild(content) |> ignore
+            entry.AppendChild(published) |> ignore
+            link.Attributes.Append(linkHref) |> ignore
+            entry.AppendChild(link) |> ignore
+            entry.AppendChild(id) |> ignore
+
+            entry
+
+        let updateFeedWith (feed : Xml.XmlDocument) (post : BlogPost) =
+            let item = postToItem feed post
+            feed.AppendChild(item) |> ignore
+            feed
+
+    module RSS =
+
+        let loadBase() =
+            Xml.loadXmlDoc("rss.xml")
+
+        let postToItem (doc : Xml.XmlDocument) (post : BlogPost) =
+            let item = doc.CreateElement("item")
+            let title = doc.CreateElement("title")
+            let link = doc.CreateElement("link")
+            let summary = doc.CreateElement("description")
+            let published = doc.CreateElement("pubDate")
+
+            summary.InnerText <- post.Meta.Summary
+            title.InnerText <- post.Title
+            link.InnerText <- blogPath + post.Meta.Slug
+            published.InnerText <- post.Meta.PublicationDate.ToString("s")
+
+            item.AppendChild(title) |> ignore
+            item.AppendChild(summary) |> ignore
+            item.AppendChild(link) |> ignore
+            item.AppendChild(published) |> ignore
+
+            item
+
+        let updateFeedWith (feed : Xml.XmlDocument) (post : BlogPost) =
+            let item = postToItem feed post
+            feed.AppendChild(item) |> ignore
+            feed
+
+
+    let formatFeedAtom (posts : BlogPost list) =
+        let feed = Atom.loadBase()
+        posts
+        |> List.sortBy (fun post -> post.Meta.PublicationDate)
+        |> List.fold Atom.updateFeedWith feed
+
+    let formatFeedRss (posts : BlogPost list) =
+        let feed = RSS.loadBase()
+        posts
+        |> List.sortBy (fun post -> post.Meta.PublicationDate)
+        |> List.fold RSS.updateFeedWith feed
