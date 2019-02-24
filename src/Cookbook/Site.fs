@@ -8,7 +8,7 @@ open WebSharper.UI.Server
 type EndPoint =
     | [<EndPoint "/">] Home
     | [<EndPoint "/blog">] Blog of string
-    | [<EndPoint "/feed">] Feed of string
+    | [<EndPoint "/feed/atom">] Feed
 
 module Templating =
     open WebSharper.UI.Html
@@ -86,28 +86,15 @@ module Site =
             Templating.Post post
         | None -> Templating.Main [||]
 
-    let PublishFeed (cfg : Configuration) feedType =
-        match feedType with
-        | "atom" ->
-            match Dropbox.Auth.createDbxClient() with
-            | Some client ->
-                let posts =
-                    Blog.loadAllPosts cfg.BlogDir client
-                    |> Array.toList
-                let feed = Feed.formatFeedAtom posts
-                Templating.Feed feed
-            | None -> WebSharper.Sitelets.Content.NotFound
-        | "rss" ->
-            match Dropbox.Auth.createDbxClient() with
-            | Some client ->
-                let posts =
-                    Blog.loadAllPosts cfg.BlogDir client
-                    |> Array.toList
-                let feed = Feed.formatFeedRss posts
-                Templating.Feed feed
-            | None -> WebSharper.Sitelets.Content.NotFound
-        | _ -> WebSharper.Sitelets.Content.NotImplemented
-
+    let PublishFeed (cfg : Configuration) =
+        match Dropbox.Auth.createDbxClient() with
+        | Some client ->
+            let posts =
+                Blog.loadAllPosts cfg.BlogDir client
+                |> Array.toList
+            let feed = Feed.formatFeed posts
+            Templating.Feed feed
+        | None -> WebSharper.Sitelets.Content.NotFound
 
     [<Website>]
     let Main =
@@ -116,5 +103,5 @@ module Site =
             match endpoint with
             | EndPoint.Home -> HomePage cfg
             | EndPoint.Blog (slug) -> BlogPost cfg slug
-            | EndPoint.Feed (feedType) -> PublishFeed cfg feedType
+            | EndPoint.Feed -> PublishFeed cfg
         )
