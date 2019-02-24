@@ -8,6 +8,7 @@ open WebSharper.UI.Server
 type EndPoint =
     | [<EndPoint "/">] Home
     | [<EndPoint "/blog">] Blog of string
+    | [<EndPoint "/feed">] Feed of string
 
 module Templating =
     open WebSharper.UI.Html
@@ -55,6 +56,15 @@ module Templating =
                 .Doc()
             )
 
+    let Feed (doc : System.Xml.XmlDocument) =
+        Content.Custom(
+            Status=Http.Status.Ok,
+            Headers = [Http.Header.Custom "Content-Type" "application/atom+xml"],
+            WriteBody = fun stream ->
+            use w = new System.IO.StreamWriter(stream)
+            doc.Save(w)
+        )
+
 module Site =
     open WebSharper.UI.Html
 
@@ -74,6 +84,29 @@ module Site =
             Templating.Post post
         | None -> Templating.Main [||]
 
+    let PublishFeed (cfg : Configuration) feedType =
+        match feedType with
+        | "atom" ->
+            match Dropbox.Auth.createDbxClient() with
+            | Some client ->
+                let posts =
+                    Blog.loadAllPosts cfg.BlogDir client
+                    |> Array.toList
+                let feed = Feed.formatFeedAtom posts
+                Templating.Feed feed
+            | None -> WebSharper.Sitelets.Content.NotFound
+        | "rss" ->
+            match Dropbox.Auth.createDbxClient() with
+            | Some client ->
+                let posts =
+                    Blog.loadAllPosts cfg.BlogDir client
+                    |> Array.toList
+                let feed = Feed.formatFeedRss posts
+                Templating.Feed feed
+            | None -> WebSharper.Sitelets.Content.NotFound
+        | _ -> WebSharper.Sitelets.Content.NotImplemented
+
+
     [<Website>]
     let Main =
         let cfg = Config.loadConfig()
@@ -81,4 +114,5 @@ module Site =
             match endpoint with
             | EndPoint.Home -> HomePage cfg
             | EndPoint.Blog (slug) -> BlogPost cfg slug
+            | EndPoint.Feed (feedType) -> PublishFeed cfg feedType
         )
