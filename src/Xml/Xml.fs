@@ -119,7 +119,7 @@ module Feed =
 
         let updateFeedWith (feed : Xml.XmlDocument) (post : BlogPost) =
             let item = postToItem feed post
-            feed.AppendChild(item) |> ignore
+            feed.DocumentElement.AppendChild(item) |> ignore
             feed
 
     module RSS =
@@ -148,7 +148,7 @@ module Feed =
 
         let updateFeedWith (feed : Xml.XmlDocument) (post : BlogPost) =
             let item = postToItem feed post
-            feed.AppendChild(item) |> ignore
+            feed.DocumentElement.AppendChild(item) |> ignore
             feed
 
 
@@ -156,10 +156,12 @@ module Feed =
         let feed = Atom.loadBase()
         posts
         |> List.sortBy (fun post -> post.Meta.PublicationDate)
+        |> List.rev
         |> List.fold Atom.updateFeedWith feed
 
     let formatFeedRss (posts : BlogPost list) =
         let feed = RSS.loadBase()
         posts
         |> List.sortBy (fun post -> post.Meta.PublicationDate)
+        |> List.rev
         |> List.fold RSS.updateFeedWith feed
