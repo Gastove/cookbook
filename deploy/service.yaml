@@ -13,10 +13,11 @@ spec:
     port: 80
     protocol: TCP
     targetPort: 8080
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: 8081
+  # TODO: gotta get LetsEncrypt up and running first
+  # - name: https
+  #   port: 443
+  #   protocol: TCP
+  #   targetPort: 8081
   selector:
     run: cookbook-webapp
   sessionAffinity: None
