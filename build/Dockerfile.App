@@ -13,6 +13,8 @@ RUN dotnet publish -c Release -o /app
 FROM microsoft/dotnet:2.2-runtime
 
 ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_URLS=https://+:8081
+
 EXPOSE 8080
 
 WORKDIR /app
