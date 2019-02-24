@@ -30,6 +30,8 @@ module Templating =
     let Main (blogPosts: BlogPost array) =
         let postSummaries =
             blogPosts
+            |> Array.sortBy (fun post -> post.Meta.PublicationDate)
+            |> Array.rev
             |> Array.map(fun (post : BlogPost) ->
                          MainTemplate.PostSummary()
                              .PostTitle(post.Title)
