@@ -1,0 +1,107 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+blockquote, q {
+  quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: "";
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+body {
+  margin: 36px auto;
+  width: 95%;
+}
+@media only screen and (min-width: 960px) {
+  body {
+    width: 960px;
+  }
+}
+body .content {
+  margin: 0 auto 53px auto;
+  font: normal 100%, "Roboto Mono", monospace;
+}
+body .content h5, body .content h4, body .content h3, body .content h2, body .content h1, body .content .blog-title {
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+body .content .blog-title {
+  font: normal 100%, "Nova Flat";
+}
+body .content h1 {
+  font-size: 1.75em;
+  /* 150% size*/
+}
+body .content h2 {
+  font-size: 1.5em;
+}
+body .content h3 {
+  font-size: 1.4em;
+}
+body .content h4 {
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+body .content h5 {
+  font-size: 1.2em;
+}
+body .content p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+body .content p strong {
+  font-weight: bold;
+  color: black;
+}
+body .content p em {
+  font-style: italic;
+}
+
+/*# sourceMappingURL=screen.css.map */

@@ -42,7 +42,7 @@ module Templating =
 
         Content.Page(
             MainTemplate()
-                .Title("A Blog?!")
+                .Title("blog.gastove.com")
                 .PostSumaries(postSummaries)
                 .Doc()
             )
