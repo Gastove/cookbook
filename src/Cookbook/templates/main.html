@@ -3,18 +3,23 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/css/screen.css"/>
+        <link href="https://fonts.googleapis.com/css?family=Nova+Flat|Roboto+Mono" rel="stylesheet">
         <title>${Title}</title>
     </head>
     <body>
-        <h1>${Title}</h1>
-        <div ws-replace="PostSumaries"></div>
-        <div ws-template="PostSummary" class="post-summary">
-            <h3><a href="/blog/${PostSlug}">${PostTitle}</a></h3>
-            ${Summary}
+        <div class="content">
+            <h1 class="blog-title">> ${Title}_</h1>
+            <hr/>
+            <div ws-replace="PostSumaries"></div>
+            <div ws-template="PostSummary" class="post-summary">
+                <h3><a href="/blog/${PostSlug}">${PostTitle}</a></h3>
+                ${Summary}
+            </div>
+            <hr/>
         </div>
     </body>
     <footer>
-        <br/>
         <a href="https://gastove.com">Home</a> | <a href="https://gitlab.com/gastove">Gitlab</a> | <a href="https://github.com/Gastove">Github</a> | <a href="/feed/atom">Atom</a>
         <br/><br/>
         © Ross Donaldson
