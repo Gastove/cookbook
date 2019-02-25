@@ -72,7 +72,7 @@ module Feed =
 
     open System
 
-    let hostName = "http://35.185.199.14/"
+    let hostName = "http://blog.gastove.com/"
     let blogPath = hostName + "blog/"
     let blogTitle = "blog.gastove.com"
     let dateFormat = "yyyy'-'MM'-'ddTHH':'mm':'ss'Z'"
