@@ -95,6 +95,7 @@ body .content h5 {
 body .content p {
   margin-top: 1em;
   margin-bottom: 1em;
+  line-height: 1.5em;
 }
 body .content p strong {
   font-weight: bold;
