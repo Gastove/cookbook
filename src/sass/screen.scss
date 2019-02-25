@@ -1,0 +1,81 @@
+@import 'reset';
+
+
+$small-screen-breakpoint: 480px;
+$large-screen-breakpoint: 960px;
+
+@mixin if-media-is($media) {
+    @if $media == phone {
+        @media only screen and (max-width: $small-screen-breakpoint) { @content; }
+    } @else if $media == tablet {
+        @media only screen and (min-width: $small-screen-breakpoint + 1) and (max-width: $large-screen-breakpoint - 1) { @content; }
+    } @else if $media == computer {
+        @media only screen and (min-width: $large-screen-breakpoint) { @content; }
+    }
+}
+
+body {
+    margin: 36px auto;
+    width: 95%;
+
+    @include if-media-is(computer) { width: 960px; }
+
+    .content {
+
+        margin: 0 auto 53px auto;
+        font: normal 100%, 'Roboto Mono', monospace;
+
+        %heading {
+            font-weight: bold;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        .blog-title {
+            @extend %heading;
+            font: normal 100%, 'Nova Flat';
+        }
+
+        h1 {
+            @extend %heading;
+            font-size: 1.75em; /* 150% size*/
+        }
+
+        h2 {
+            @extend %heading;
+            font-size: 1.5em;
+        }
+
+        h3 {
+            @extend %heading;
+            font-size: 1.4em;
+        }
+
+        h4 {
+            @extend %heading;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        h5 {
+            @extend %heading;
+            font-size: 1.2em;
+        }
+
+        p {
+            margin-top: 1em;
+            margin-bottom: 1em;
+
+            strong {
+                font-weight: bold;
+                color: black;
+            }
+
+            em {
+                font-style: italic
+            }
+        }
+    }
+}
