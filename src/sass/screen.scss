@@ -1,5 +1,6 @@
 @import 'reset';
 
+$site-grey: rgb(169, 166, 155);
 
 $small-screen-breakpoint: 480px;
 $large-screen-breakpoint: 960px;
@@ -64,6 +65,11 @@ body {
             font-size: 1.2em;
         }
 
+        ul {
+            list-style-type: circle;
+            margin-left: 1.5em;
+        }
+
         p {
             margin-top: 1em;
             margin-bottom: 1em;
@@ -77,6 +83,12 @@ body {
             em {
                 font-style: italic
             }
+        }
+
+        blockquote {
+            margin: 1.5em 10px;
+            border-left: 2px solid $site-grey;
+            padding-left: 0.75em;
         }
     }
 }
