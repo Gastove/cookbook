@@ -13,6 +13,7 @@ type EndPoint =
 module Templating =
     open WebSharper.UI.Html
 
+    type HeaderTemplate = Templating.Template<"templates/header.html">
     type MainTemplate = Templating.Template<"templates/main.html">
     type PostTemplate = Templating.Template<"templates/post.html">
 
@@ -27,7 +28,33 @@ module Templating =
             "Home" => EndPoint.Home
         ]
 
+    let Header (title : string) =
+        HeaderTemplate()
+            .Title(title)
+            .Doc()
+
+    // Footer requires no templating, so we just compute it.
+    let Footer (extra : Doc list) =
+        let sep = text " | "
+        let baseFooter = [
+            a [attr.href "/"] [text "Home"]
+            sep
+            a [attr.href "https://gastove.com"] [text "gastove.com"]
+            sep
+            a [attr.href "https://gitlab.com/gastove"] [text "Gitlab"]
+            sep
+            a [attr.href "https://github.com/Gastove"] [text "Github"]
+            sep
+            a [attr.href "/feed/atom"] [text "Atom"]
+            br [] []
+            br [] []
+            text "© Ross Donaldson"
+            ]
+
+        footer [] (List.append baseFooter extra)
+
     let Main (blogPosts: BlogPost array) =
+        let title = "blog.gastove.com"
         let postSummaries =
             blogPosts
             |> Array.sortBy (fun post -> post.Meta.PublicationDate)
@@ -42,19 +69,26 @@ module Templating =
 
         Content.Page(
             MainTemplate()
-                .Title("blog.gastove.com")
+                .Header(Header title)
+                .Title(title)
                 .PostSumaries(postSummaries)
+                .Footer(Footer List.Empty)
                 .Doc()
             )
 
     let Post (post: BlogPost) =
+        let scripts = [
+                script [attr.src "/js/prism.js"] []
+            ]
+
         Content.Page(
             PostTemplate()
-                .Title(post.Title)
+                .Header(Header post.Title)
                 .PostTitle(post.Title)
                 .Body(post.Body)
                 .PostDate(post.Meta.PublicationDate.ToLongDateString())
                 .Tags(post.Meta.Tags)
+                .Footer(Footer scripts)
                 .Doc()
             )
 
