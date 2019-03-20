@@ -74,6 +74,7 @@ module Site =
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
             let posts = Blog.loadAllPosts cfg.BlogDir client
+            client.Dispose()
             Templating.Main posts
         | None -> Templating.Main [||]
 
