@@ -90,5 +90,36 @@ body {
             border-left: 2px solid $site-grey;
             padding-left: 0.75em;
         }
+
+
+        table {
+
+            margin: 36px auto;
+            border-collapse: collapse;
+            text-align: left;
+
+            th {
+                border-right: 1px solid black;
+                border-bottom: 1px solid black;
+                color: black;
+                padding: 0.5em;
+            }
+
+            tr {
+                td {
+                    border-right: 1px solid black;
+                    color: black;
+                    padding: 0.5em;
+                }
+
+                td:first-child, th:first-child {
+                    border-left: none;
+                }
+
+                td:last-child, th:last-child {
+                    border-right: none;
+                }
+            }
+        }
     }
 }
