@@ -24,18 +24,25 @@ body {
     .content {
 
         margin: 0 auto 53px auto;
+        font: normal 125% 'Fira Sans', sans-serif;
 
         %heading {
             font-weight: bold;
             margin-top: 1em;
-            margin-bottom: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        .blog-title, .post-title {
+            @extend %heading;
+            font: normal 100% 'Roboto Mono', monospace;
         }
 
         .blog-title {
-            @extend %heading;
-            font: normal 100% 'Nova Flat', sans-serif;
+            font-size: 1.75em;
+        }
+
+        .post-title {
             font-size: 1.5em;
-            // font: normal 100% 'Roboto Mono', monospace;
         }
 
         h1 {
