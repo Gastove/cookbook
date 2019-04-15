@@ -10,6 +10,10 @@ COPY . /build
 RUN dotnet tool install -g paket
 ENV PATH="$PATH:/root/.dotnet/tools"
 
+RUN paket restore
+
+FROM build AS release
+
 RUN dotnet publish -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/core/runtime:2.2.4-stretch-slim
@@ -20,6 +24,6 @@ EXPOSE 8080
 
 WORKDIR /app
 
-COPY --from=build /app ./
+COPY --from=release /app ./
 
 ENTRYPOINT ["dotnet", "Cookbook.dll"]
