@@ -113,5 +113,35 @@ body .content blockquote {
   border-left: 2px solid #a9a69b;
   padding-left: 0.75em;
 }
+body .content ol {
+  list-style-type: decimal;
+  margin-left: 1.5em;
+}
+body .content ul {
+  list-style-type: circle;
+  margin-left: 1.5em;
+}
+body .content table {
+  margin: 36px auto;
+  border-collapse: collapse;
+  text-align: left;
+}
+body .content table th {
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  color: black;
+  padding: 0.5em;
+}
+body .content table tr td {
+  border-right: 1px solid black;
+  color: black;
+  padding: 0.5em;
+}
+body .content table tr td:first-child, body .content table tr th:first-child {
+  border-left: none;
+}
+body .content table tr td:last-child, body .content table tr th:last-child {
+  border-right: none;
+}
 
 /*# sourceMappingURL=screen.css.map */
