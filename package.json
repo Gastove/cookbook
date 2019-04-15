@@ -5,7 +5,8 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "sass": "npx sass src/sass/screen.scss src/Cookbook/wwwroot/css/screen.css"
+        "sass": "npx sass src/sass/screen.scss src/Cookbook/wwwroot/css/screen.css",
+        "sass-devel": "npx sass src/sass/screen.scss src/Cookbook/wwwroot/css/screen.css --watch"
     },
     "repository": {
         "type": "git",
