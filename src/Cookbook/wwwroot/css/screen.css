@@ -115,11 +115,11 @@ body .content blockquote {
 }
 body .content ol {
   list-style-type: decimal;
-  margin-left: 1.5em;
+  margin-left: 1.6em;
 }
 body .content ul {
   list-style-type: circle;
-  margin-left: 1.5em;
+  margin-left: 1.6em;
 }
 body .content table {
   margin: 36px auto;
@@ -142,6 +142,10 @@ body .content table tr td:first-child, body .content table tr th:first-child {
 }
 body .content table tr td:last-child, body .content table tr th:last-child {
   border-right: none;
+}
+body .content sup {
+  vertical-align: super;
+  font-size: 0.7em;
 }
 
 /*# sourceMappingURL=screen.css.map */

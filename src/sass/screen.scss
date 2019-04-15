@@ -93,12 +93,12 @@ body {
 
         ol {
             list-style-type: decimal;
-            margin-left:     1.5em;
+            margin-left:     1.6em;
         }
 
         ul {
             list-style-type: circle;
-            margin-left:     1.5em;
+            margin-left:     1.6em;
         }
 
         table {
@@ -129,6 +129,11 @@ body {
                     border-right: none;
                 }
             }
+        }
+
+        sup {
+            vertical-align: super;
+            font-size: 0.7em;
         }
     }
 }
