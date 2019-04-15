@@ -13,8 +13,8 @@ type EndPoint =
 module Templating =
     open WebSharper.UI.Html
 
-    type HeaderTemplate = Templating.Template<"templates/header.html">
     type MainTemplate = Templating.Template<"templates/main.html">
+    type HeaderTemplate = Templating.Template<"templates/header.html">
     type PostTemplate = Templating.Template<"templates/post.html">
 
     // Compute a menubar where the menu item for the given endpoint is active
