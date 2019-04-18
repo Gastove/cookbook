@@ -32,7 +32,8 @@ spec:
           image: registry.gitlab.com/gastove/cookbook/application:REPLACE
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - name: http-port
+              containerPort: 8080
               protocol: TCP
 
           resources: {}
@@ -49,6 +50,22 @@ spec:
 
             - name: BLOG_DIR
               value: "/blog/html"
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http-port
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http-port
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
 
       dnsPolicy: ClusterFirst
       restartPolicy: Always
