@@ -1,15 +1,12 @@
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: cookbook-ingress
   annotations:
-    certmanager.k8s.io/cluster-issuer: letsencrypt
     kubernetes.io/ingress.global-static-ip-name: gastove-blog-ip
+    networking.gke.io/managed-certificates: gastove-blog-tls
 spec:
   backend:
     serviceName: cookbook-webapp
     servicePort: 80
-  tls:
-    - hosts:
-      - blog.gastove.com
-      secretName: gastove-blog-tls
