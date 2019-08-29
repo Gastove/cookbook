@@ -107,8 +107,8 @@ module Site =
     let HomePage (cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
+            use client = client
             let posts = Blog.loadAllPosts cfg.BlogDir client
-            client.Dispose()
             Templating.Main posts
         | None -> Templating.Main [||]
 
@@ -117,6 +117,7 @@ module Site =
         let postFile = slug + ".html"
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
+            use client = client
             let post = Blog.loadPost cfg.BlogDir postFile client
             Templating.Post post
         | None -> Templating.Main [||]
@@ -124,6 +125,7 @@ module Site =
     let PublishFeed (cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
+            use client = client
             let posts =
                 Blog.loadAllPosts cfg.BlogDir client
                 |> Array.toList

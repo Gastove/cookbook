@@ -1,18 +1,8 @@
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Certificate
+---
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
 metadata:
   name: gastove-blog-tls
 spec:
-  secretName: gastove-blog-tls
-  issuerRef:
-    name: letsencrypt
-    kind: ClusterIssuer
-  commonName: blog.gastove.com
-  dnsNames:
+  domains:
     - blog.gastove.com
-  acme:
-    config:
-    - http01:
-        ingress: cookbook-ingress
-      domains:
-        - blog.gastove.com
