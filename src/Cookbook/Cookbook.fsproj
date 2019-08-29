@@ -4,7 +4,8 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <WebSharperProject>Website</WebSharperProject>
         <WebProjectOutputDir>$(MSBuildThisFileDirectory)/wwwroot</WebProjectOutputDir>
-        <RuntimeIdentifier>fedora.28-x64</RuntimeIdentifier>
+        <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Blog.fs" />
@@ -17,12 +18,9 @@
         <Content Include="templates/header.html" CopyToPublishDirectory="Always" />
         <Content Include="templates/post.html" CopyToPublishDirectory="Always" />
     </ItemGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\Dropbox\Dropbox.fsproj" />
         <ProjectReference Include="..\Xml\Xml.fsproj" />
     </ItemGroup>
-
     <Import Project="..\..\.paket\Paket.Restore.targets" />
-
 </Project>
