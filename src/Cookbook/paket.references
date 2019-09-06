@@ -2,6 +2,9 @@
 // *explodes* if I try to move these deps into paket. I'll need to fix that...
 // eventually.
 
+Serilog
+Serilog.Sinks.Console
+Serilog.AspNetCore
 Microsoft.AspNetCore.All
 FSharp.Core
 WebSharper
