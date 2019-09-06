@@ -51,6 +51,11 @@ spec:
             - name: BLOG_DIR
               value: "/blog/html"
 
+            # This is the default value if unset, but -- it's also what we want,
+            # so let's be explicit.
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+
           livenessProbe:
             httpGet:
               path: /
