@@ -6,112 +6,116 @@ open WebSharper.UI
 open WebSharper.UI.Server
 
 type EndPoint =
-    | [<EndPoint "/">] Home
-    | [<EndPoint "/blog">] Blog of string
-    | [<EndPoint "/feed/atom">] Feed
+    | [<EndPoint"/">] Home
+    | [<EndPoint"/blog">] Blog of string
+    | [<EndPoint"/feed/atom">] Feed
 
 module Templating =
+    open System
     open WebSharper.UI.Html
 
+    open Serilog
+
     type MainTemplate = Templating.Template<"templates/main.html">
+
     type HeaderTemplate = Templating.Template<"templates/header.html">
+
     type PostTemplate = Templating.Template<"templates/post.html">
 
+    let logger = LoggerConfiguration().WriteTo.Console().CreateLogger()
+
+    // One hour in seconds
+    let MAX_AGE = 3600
+
+    let computeHeaders() =
+        [ Http.Header.Custom "Cache-Control"
+              (sprintf "public,max-age=%i" MAX_AGE) ]
+
+    let WithCacheHeaders content =
+        let headers = computeHeaders()
+        content |> Content.WithHeaders headers
+
     // Compute a menubar where the menu item for the given endpoint is active
-    let MenuBar (ctx: Context<EndPoint>) endpoint : Doc list =
+    let MenuBar (ctx : Context<EndPoint>) endpoint : Doc list =
+        let (=>) txt act =
+            li [ if endpoint = act then yield attr.``class`` "active" ]
+                [ a [ attr.href (ctx.Link act) ] [ text txt ] ]
+        [ "Home" => EndPoint.Home ]
 
-        let ( => ) txt act =
-            li [if endpoint = act then yield attr.``class`` "active"] [
-               a [attr.href (ctx.Link act)] [text txt]
-            ]
-        [
-            "Home" => EndPoint.Home
-        ]
-
-    let Header (title : string) =
+    let PageHeader(title : string) =
         HeaderTemplate()
             .Title(title)
             .Doc()
 
     // Footer requires no templating, so we just compute it.
-    let Footer (extra : Doc list) =
+    let Footer(extra : Doc list) =
         let sep = text " | "
-        let baseFooter = [
-            a [attr.href "/"] [text "Home"]
-            sep
-            a [attr.href "https://gastove.com"] [text "gastove.com"]
-            sep
-            a [attr.href "https://gitlab.com/gastove"] [text "Gitlab"]
-            sep
-            a [attr.href "https://github.com/Gastove"] [text "Github"]
-            sep
-            a [attr.href "/feed/atom"] [text "Atom"]
-            br [] []
-            br [] []
-            text "© Ross Donaldson"
-            ]
 
+        let baseFooter =
+            [ a [ attr.href "/" ] [ text "Home" ]
+              sep
+              a [ attr.href "https://gastove.com" ] [ text "gastove.com" ]
+              sep
+              a [ attr.href "https://gitlab.com/gastove" ] [ text "Gitlab" ]
+              sep
+              a [ attr.href "https://github.com/Gastove" ] [ text "Github" ]
+              sep
+              a [ attr.href "/feed/atom" ] [ text "Atom" ]
+              br [] []
+              br [] []
+              text "© Ross Donaldson" ]
         footer [] (List.append baseFooter extra)
 
-    let Main (blogPosts: BlogPost array) =
+    let Main(blogPosts : BlogPost array) =
         let title = "blog.gastove.com"
+
         let postSummaries =
             blogPosts
             |> Array.sortBy (fun post -> post.Meta.PublicationDate)
             |> Array.rev
-            |> Array.map(fun (post : BlogPost) ->
-                         MainTemplate.PostSummary()
-                             .PostTitle(post.Title)
-                             .PostSlug(post.Meta.Slug)
-                             .Summary(post.Meta.Summary)
-                             .Doc()
-                         )
-
-        Content.Page(
-            MainTemplate()
-                .Header(Header title)
+            |> Array.map
+                (fun (post : BlogPost) ->
+                MainTemplate.PostSummary().PostTitle(post.Title)
+                            .PostSlug(post.Meta.Slug)
+                            .Summary(post.Meta.Summary).Doc())
+        Content.Page(MainTemplate()
+                .Header(PageHeader title)
                 .Title(title)
                 .PostSumaries(postSummaries)
                 .Footer(Footer List.Empty)
-                .Doc()
-            )
+                .Doc()) |> WithCacheHeaders
 
-    let Post (post: BlogPost) =
-        let scripts = [
-                script [attr.src "/js/prism.js"] []
-            ]
-
-        Content.Page(
-            PostTemplate()
-                .Header(Header post.Title)
+    let Post(post : BlogPost) =
+        let scripts = [ script [ attr.src "/js/prism.js" ] [] ]
+        Content.Page(PostTemplate()
+                .Header(PageHeader post.Title)
                 .PostTitle(post.Title)
                 .Body(post.Body)
                 .PostDate(post.Meta.PublicationDate.ToLongDateString())
                 .Tags(post.Meta.Tags)
                 .Footer(Footer scripts)
-                .Doc()
-            )
+                .Doc()) |> WithCacheHeaders
 
-    let Feed (doc : System.Xml.XmlDocument) =
-        Content.Custom(
-            Status=Http.Status.Ok,
-            Headers = [Http.Header.Custom "Content-Type" "application/atom+xml"],
-            WriteBody = fun stream ->
-            use w = new System.IO.StreamWriter(stream)
-            doc.Save(w)
-        )
+    let Feed(doc : System.Xml.XmlDocument) =
+        let feedHeaders =
+            [ [ Http.Header.Custom "Content-Type" "application/atom+xml" ]
+              computeHeaders() ]
+            |> List.concat
+        Content.Custom(Status = Http.Status.Ok, Headers = feedHeaders,
+                       WriteBody = fun stream ->
+                           use w = new System.IO.StreamWriter(stream)
+                           doc.Save(w))
 
 module Site =
     open WebSharper.UI.Html
 
-    let HomePage (cfg : Configuration) =
+    let HomePage(cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
             use client = client
             let posts = Blog.loadAllPosts cfg.BlogDir client
             Templating.Main posts
         | None -> Templating.Main [||]
-
 
     let BlogPost (cfg : Configuration) slug =
         let postFile = slug + ".html"
@@ -122,13 +126,11 @@ module Site =
             Templating.Post post
         | None -> Templating.Main [||]
 
-    let PublishFeed (cfg : Configuration) =
+    let PublishFeed(cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
             use client = client
-            let posts =
-                Blog.loadAllPosts cfg.BlogDir client
-                |> Array.toList
+            let posts = Blog.loadAllPosts cfg.BlogDir client |> Array.toList
             let feed = Feed.formatFeed posts
             Templating.Feed feed
         | None -> WebSharper.Sitelets.Content.NotFound
@@ -136,9 +138,8 @@ module Site =
     [<Website>]
     let Main =
         let cfg = Config.loadConfig()
-        Application.MultiPage (fun ctx endpoint ->
+        Application.MultiPage(fun ctx endpoint ->
             match endpoint with
             | EndPoint.Home -> HomePage cfg
-            | EndPoint.Blog (slug) -> BlogPost cfg slug
-            | EndPoint.Feed -> PublishFeed cfg
-        )
+            | EndPoint.Blog(slug) -> BlogPost cfg slug
+            | EndPoint.Feed -> PublishFeed cfg)

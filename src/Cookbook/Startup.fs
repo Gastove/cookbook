@@ -1,5 +1,7 @@
 namespace Cookbook
 
+open Serilog
+open Serilog.AspNetCore
 open System
 open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Builder
@@ -7,6 +9,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
 open WebSharper.AspNetCore
 
 type Startup() =
@@ -28,13 +31,25 @@ type Startup() =
                 context.Response.WriteAsync("Page not found"))
 
 module Program =
+
+    open Serilog
+
+    let ConfigureLogging() =
+        LoggerConfiguration().MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", Events.LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .CreateLogger()
+
     let BuildWebHost args =
         WebHost
             .CreateDefaultBuilder(args)
             .UseStartup<Startup>()
+            .UseSerilog()
             .Build()
 
     [<EntryPoint>]
     let main args =
+        Log.Logger <- ConfigureLogging()
         BuildWebHost(args).Run()
         0
