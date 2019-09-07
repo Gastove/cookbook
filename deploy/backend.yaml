@@ -1,0 +1,13 @@
+---
+apiVersion: cloud.google.com/v1beta1
+kind: BackendConfig
+metadata:
+  namespace: cookbook
+  name: cookbook-cdn-backend
+spec:
+  cdn:
+    enabled: true
+    cachePolicy:
+      includeHost: true
+      includeProtocol: true
+      includeQueryString: false
