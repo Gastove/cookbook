@@ -23,6 +23,14 @@ body {
 
     .content {
 
+        i {
+            font-style: italic;
+        }
+
+        .underline {
+            text-decoration: underline;
+        }
+
         margin: 0 auto 53px auto;
         font: normal 125% 'Fira Sans', sans-serif;
 
@@ -76,7 +84,53 @@ body {
         ul {
             list-style-type: circle;
             margin-left: 1.5em;
+
+            dl {
+                width: 100%;
+                // overflow: hidden;
+                padding: 0;
+                margin: 0;
+
+                dt {
+                    // float: left;
+                    // width: 50%;
+                }
+
+                dt::after {
+                    content: ": ";
+                }
+
+                dd {
+                    // width: 50%;
+                    // float: left;
+                    margin-left: 1.5em;
+                }
+            }
         }
+
+        // dl {
+        //   width: 100%;
+        //   overflow: hidden;
+        //   background: #ff0;
+        //   padding: 0;
+        //   margin: 0
+        // }
+        // dt {
+        //   float: left;
+        //   width: 50%;
+        //   /* adjust the width; make sure the total of both is 100% */
+        //   background: #cc0;
+        //   padding: 0;
+        //   margin: 0
+        // }
+        // dd {
+        //   float: left;
+        //   width: 50%;
+        //   /* adjust the width; make sure the total of both is 100% */
+        //   background: #dd0
+        //   padding: 0;
+        //   margin: 0
+        // }
 
         p {
             margin-top: 1em;
