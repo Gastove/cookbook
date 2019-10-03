@@ -5,7 +5,6 @@
 Serilog
 Serilog.Sinks.Console
 Serilog.AspNetCore
-Microsoft.AspNetCore.All
 FSharp.Core
 WebSharper
 WebSharper.FSharp

@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2.401 AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0 AS build
 
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
@@ -16,7 +16,7 @@ FROM build AS release
 
 RUN dotnet publish -c Release -o /app
 
-FROM mcr.microsoft.com/dotnet/core/runtime:2.2.4-stretch-slim
+FROM mcr.microsoft.com/dotnet/core/runtime:3.0-buster-slim
 
 ENV ASPNETCORE_URLS=http://+:8080
 
