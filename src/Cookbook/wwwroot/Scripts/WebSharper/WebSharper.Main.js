@@ -1,7 +1,7 @@
 (function()
 {
  "use strict";
- var Global,WebSharper,JavaScript,JS,Error,NonStandardPromiseRejectionException,Promise,Pervasives,Json,Obj,Remoting,XhrProvider,AjaxRemotingProvider,SC$1,HtmlContentExtensions,SingleNode,Activator,SC$2,Collections,EqualityComparer,Comparers,EquatableEqualityComparer,BaseEqualityComparer,Comparer,ComparableComparer,BaseComparer,Operators,Nullable,Utils,Concurrency,CT,AsyncBody,Scheduler,SC$3,Enumerator,T,Optional,Arrays,Seq,List,Arrays2D,CancellationTokenSource,Char,Util,DateUtil,DateTimeOffset,Delegate,DictionaryUtil,KeyCollection,ValueCollection,Dictionary,Exception,MatchFailureException,IndexOutOfRangeException,OperationCanceledException,ArgumentException,ArgumentOutOfRangeException,ArgumentNullException,InvalidOperationException,AggregateException,TimeoutException,FormatException,OverflowException,TaskCanceledException,System,Guid,HashSetUtil,HashSet,LazyExtensionsProxy,LazyRecord,Lazy,T$1,Slice,Option,Queue,Random,Ref,Result,Control,Stack,Strings,Task,Task1,TaskCompletionSource,Unchecked,Microsoft,FSharp,Core,FSharpValueOption,ValueOption,Numeric,IntelliFactory,Runtime,Promise$1,JSON,String,Date,console,Math;
+ var Global,WebSharper,JavaScript,JS,Error,NonStandardPromiseRejectionException,Promise,Pervasives,Json,Obj,Remoting,XhrProvider,AjaxRemotingProvider,SC$1,HtmlContentExtensions,SingleNode,IControlBody,Activator,SC$2,Collections,EqualityComparer,Comparers,EquatableEqualityComparer,BaseEqualityComparer,Comparer,ComparableComparer,BaseComparer,Operators,Nullable,Utils,Concurrency,CT,AsyncBody,Scheduler,SC$3,Enumerator,T,Optional,Arrays,Seq,List,Arrays2D,CancellationTokenSource,Char,Util,DateUtil,DateTimeOffset,Delegate,DictionaryUtil,KeyCollection,ValueCollection,Dictionary,Exception,MatchFailureException,IndexOutOfRangeException,OperationCanceledException,ArgumentException,ArgumentOutOfRangeException,ArgumentNullException,InvalidOperationException,AggregateException,TimeoutException,FormatException,OverflowException,TaskCanceledException,System,Guid,HashSetUtil,HashSet,LazyExtensionsProxy,LazyRecord,Lazy,T$1,Slice,Option,Queue,Random,Ref,Result,Control,Stack,Strings,Task,Task1,TaskCompletionSource,Unchecked,Microsoft,FSharp,Core,FSharpValueOption,ValueOption,Numeric,IntelliFactory,Runtime,Promise$1,JSON,String,Date,console,Math;
  Global=self;
  WebSharper=Global.WebSharper=Global.WebSharper||{};
  JavaScript=WebSharper.JavaScript=WebSharper.JavaScript||{};
@@ -18,6 +18,7 @@
  SC$1=Global.StartupCode$WebSharper_Main$Remoting=Global.StartupCode$WebSharper_Main$Remoting||{};
  HtmlContentExtensions=WebSharper.HtmlContentExtensions=WebSharper.HtmlContentExtensions||{};
  SingleNode=HtmlContentExtensions.SingleNode=HtmlContentExtensions.SingleNode||{};
+ IControlBody=HtmlContentExtensions.IControlBody=HtmlContentExtensions.IControlBody||{};
  Activator=WebSharper.Activator=WebSharper.Activator||{};
  SC$2=Global.StartupCode$WebSharper_Main$Html=Global.StartupCode$WebSharper_Main$Html||{};
  Collections=WebSharper.Collections=WebSharper.Collections||{};
@@ -559,6 +560,10 @@
   Obj.New.call(this);
   this.node=node;
  },SingleNode);
+ IControlBody.SingleNode=function(node)
+ {
+  return new SingleNode.New(node);
+ };
  Activator.Activate=function()
  {
   var meta;
@@ -1004,53 +1009,136 @@
    });
   };
  };
- Concurrency.Parallel=function(cs)
+ Concurrency.Sequential=function(cs)
  {
   var cs$1;
   cs$1=Arrays.ofSeq(cs);
   return Arrays.length(cs$1)===0?Concurrency.Return([]):function(c)
   {
-   var n,o,a;
+   var n,a;
+   function start(i)
+   {
+    var action;
+    while(true)
+     {
+      action=function(i$1)
+      {
+       return function()
+       {
+        (Arrays.get(cs$1,i$1))(AsyncBody.New(function($1)
+        {
+         return accept(i$1,$1);
+        },c.ct));
+       };
+      }(i);
+      return Concurrency.scheduler().Fork(action);
+     }
+   }
    function accept(i,x)
    {
-    var $1,$2;
-    $2=o[0];
-    switch($2===0?0:$2===1?x.$==0?1:($1=[$2,x],3):x.$==0?2:($1=[$2,x],3))
+    return x.$==0?(Arrays.set(a,i,x.$0),i===n-1?c.k({
+     $:0,
+     $0:a
+    }):c.ct.c?Concurrency.cancel(c):start(i+1)):c.k(x);
+   }
+   n=cs$1.length;
+   a=new Global.Array(n);
+   start(0);
+  };
+ };
+ Concurrency.ParallelWithMaxDegree=function(cs,d)
+ {
+  var cs$1;
+  d<=0?Operators.InvalidArg("maxDegreeOfParallelism","maxDegreeOfParallelism must be positive, was "+String(d)):void 0;
+  cs$1=Arrays.ofSeq(cs);
+  return Arrays.length(cs$1)===0?Concurrency.Return([]):function(c)
+  {
+   var n,o,a,i,$1;
+   function start(i$1)
+   {
+    Concurrency.scheduler().Fork(function()
+    {
+     (Arrays.get(cs$1,i$1))(AsyncBody.New(function($2)
+     {
+      return accept(i$1,$2);
+     },c.ct));
+    });
+   }
+   function accept(i$1,x)
+   {
+    var $2,$3,j;
+    $3=o[0];
+    switch($3===0?0:$3===1?x.$==0?1:($2=[$3,x],3):x.$==0?2:($2=[$3,x],3))
     {
      case 0:
       return null;
      case 1:
-      Arrays.set(a,i,x.$0);
+      Arrays.set(a,i$1,x.$0);
       o[0]=0;
       return c.k({
        $:0,
        $0:a
       });
      case 2:
-      Arrays.set(a,i,x.$0);
-      {
-       o[0]=$2-1;
-       return;
-      }
-      break;
+      return c.ct.c?(o[0]=0,Concurrency.cancel(c)):(Arrays.set(a,i$1,x.$0),o[0]=$3-1,j=n-$3+d,j<n?start(j):null);
      case 3:
       o[0]=0;
-      return c.k($1[1]);
+      return c.k($2[1]);
     }
    }
    n=cs$1.length;
    o=[n];
    a=new Global.Array(n);
-   Arrays.iteri(function($1,$2)
+   for(i=0,$1=(Unchecked.Compare(d,n)===-1?d:n)-1;i<=$1;i++)start(i);
+  };
+ };
+ Concurrency.Parallel=function(cs)
+ {
+  var cs$1;
+  cs$1=Arrays.ofSeq(cs);
+  return Arrays.length(cs$1)===0?Concurrency.Return([]):function(c)
+  {
+   var n,o,a,i,$1;
+   function accept(i$1,x)
+   {
+    var $2,$3;
+    $3=o[0];
+    switch($3===0?0:$3===1?x.$==0?1:($2=x,3):x.$==0?2:($2=x,3))
+    {
+     case 0:
+      return null;
+     case 1:
+      Arrays.set(a,i$1,x.$0);
+      o[0]=0;
+      return c.k({
+       $:0,
+       $0:a
+      });
+     case 2:
+      Arrays.set(a,i$1,x.$0);
+      {
+       o[0]=$3-1;
+       return;
+      }
+      break;
+     case 3:
+      o[0]=0;
+      return c.k($2);
+    }
+   }
+   n=cs$1.length;
+   o=[n];
+   a=new Global.Array(n);
+   for(i=0,$1=n-1;i<=$1;i++)(function(i$1)
    {
     return Concurrency.scheduler().Fork(function()
     {
-     $2(AsyncBody.New(function($3)
+     (Arrays.get(cs$1,i$1))(AsyncBody.New(function($2)
      {
-      return accept($1,$3);
+      return accept(i$1,$2);
      },c.ct));
     });
-   },cs$1);
+   }(i));
   };
  };
  Concurrency.Sleep=function(ms)
