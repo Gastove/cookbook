@@ -34,15 +34,6 @@ type Startup() =
 
 module Program =
 
-    open Serilog
-
-    let ConfigureLogging() =
-        LoggerConfiguration().MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", Events.LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .CreateLogger()
-
     let BuildWebHost args =
         WebHost
             .CreateDefaultBuilder(args)
@@ -53,6 +44,6 @@ module Program =
 
     [<EntryPoint>]
     let main args =
-        Log.Logger <- ConfigureLogging()
+        Log.Logger <- Logging.ConfigureLogging()
         BuildWebHost(args).Run()
         0

@@ -109,6 +109,8 @@ module Templating =
 module Site =
     open WebSharper.UI.Html
 
+    open Serilog
+
     let HomePage(cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
         | Some client ->
@@ -137,7 +139,9 @@ module Site =
 
     [<Website>]
     let Main =
+        let logger = Logging.ConfigureLogging()
         let cfg = Config.loadConfig()
+        Async.Start <| Static.Gifs.runSync cfg logger
         Application.MultiPage(fun ctx endpoint ->
             match endpoint with
             | EndPoint.Home -> HomePage cfg
