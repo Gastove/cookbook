@@ -2,48 +2,80 @@ namespace Cookbook
 
 module Static =
 
-    open Config
-    open GCP.MediaTypes
+    open Serilog
+
+    module Media =
+
+        open GCP
+
+        type Upload =
+            {Media : Media
+             Config : Configuration
+             Logger : ILogger
+             Prefix : string}
+
+        type UploadMaker = string -> System.IO.Stream -> Upload
+        type UploadMakerMaker = Configuration -> ILogger -> string -> string -> UploadMaker
+
+        let buildUploadMaker cfg logger prefix mediaType: UploadMaker =
+            fun name stream ->
+                let media =
+                    {MediaType = mediaType
+                     FileName = name
+                     Body = stream}
+
+                {Media=media
+                 Config = cfg
+                 Logger = logger
+                 Prefix = prefix}
 
     module Gifs =
 
-        open Serilog
-
         let makeGif name stream =
-            new Gif(name, stream)
+            {GCP.Media.MediaType="media/gif"
+             GCP.Media.FileName=name
+             GCP.Media.Body = stream}
 
-        let uploadAsync (cfg : Configuration) (prefix : string) (file : IMedia) (logger : ILogger) =
-            logger.Information("Uploading file {name} to {bucket}/{prefix}", file.FileName(), cfg.StaticAssetsBucket, prefix)
-            GCP.Storage.put cfg.StaticAssetsBucket prefix file
+        let uploadAsync (upload: Media.Upload) =
+            upload.Logger.Information
+                ("Uploading file {name} to {bucket}/{prefix}", upload.Media.FileName,
+                 upload.Config.StaticAssetsBucket, upload.Prefix)
+            GCP.Storage.put upload.Config.StaticAssetsBucket upload.Prefix upload.Media
 
-        let synchronizeGifs (dbxClient : Dropbox.DbxClient) (cfg : Configuration) (logger : ILogger)=
-            let dbxGifsDir = Constants.GifsDir
-            let task = async {
-                let! fileList = Dropbox.Files.listFilesAsync dbxGifsDir dbxClient
+        let synchronizeMedia (dbxClient : Dropbox.DbxClient) (mediaDir : string) (uploadMaker : Media.UploadMaker) =
 
-                let fileNames =
-                    fileList.Entries
-                    |> Seq.filter (fun entry -> entry.IsFile)
-                    |> Seq.map (fun entry -> entry.Name)
+            let task =
+                async {
+                    let! fileList = Dropbox.Files.listFilesAsync mediaDir dbxClient
 
+                    let fileNames =
+                        fileList.Entries
+                        |> Seq.filter (fun entry -> entry.IsFile)
+                        |> Seq.map (fun entry -> entry.Name)
 
-                fileNames
-                |> Seq.map (fun n -> async {
-                                    logger.Information("Syncing gif {n}", n)
-                                    use! download = Dropbox.Files.loadFileAsync dbxGifsDir n dbxClient
-                                    let! stream = download.GetContentAsStreamAsync() |> Async.AwaitTask
+                    fileNames
+                    |> Seq.map (fun n ->
+                           async {
+                               use! download = Dropbox.Files.loadFileAsync mediaDir n dbxClient
 
-                                    let gif = makeGif n stream
+                               let! stream = download.GetContentAsStreamAsync()
+                                             |> Async.AwaitTask
 
-                                    let! url = uploadAsync cfg Constants.StaticAssetsGifsPrefix gif logger
-                                    logger.Information("Uploaded to {url}", url)
-                                })
-                |> Async.Parallel
-                |> Async.RunSynchronously
-                |> ignore
-            }
+                               let upload = uploadMaker n stream
 
+                               let! url = uploadAsync upload
+
+                               upload.Logger.Information("Uploaded to {url}", url)
+                           })
+                    |> Async.Parallel
+                    |> Async.RunSynchronously
+                    |> ignore
+                }
             task
+
+        let syncGifs (dbxClient : Dropbox.DbxClient) (logger : ILogger) (cfg : Configuration)=
+            let uploader = Media.buildUploadMaker cfg logger Constants.StaticAssetsGifsPrefix "media/gif"
+            synchronizeMedia dbxClient Constants.GifsDir uploader
 
         let runSync cfg (logger : ILogger) =
             match Dropbox.Auth.createDbxClient() with
@@ -53,8 +85,9 @@ module Static =
                 let sleepMilis = sleepSeconds * 1000
                 async {
                     while true do
-                        logger.Debug("Syncing gifs...")
-                        synchronizeGifs dbxClient cfg logger |> Async.RunSynchronously
-                        Async.Sleep sleepMilis |> Async.RunSynchronously
+                    logger.Debug("Syncing gifs...")
+                    syncGifs dbxClient logger cfg
+                    |> Async.RunSynchronously
+                    Async.Sleep sleepMilis |> Async.RunSynchronously
                 }
-            | None -> async {()}
+            | None -> async { () }
