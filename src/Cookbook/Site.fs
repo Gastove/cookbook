@@ -11,7 +11,6 @@ type EndPoint =
     | [<EndPoint"/feed/atom">] Feed
 
 module Templating =
-    open System
     open WebSharper.UI.Html
 
     open Serilog
@@ -107,9 +106,6 @@ module Templating =
                            doc.Save(w))
 
 module Site =
-    open WebSharper.UI.Html
-
-    open Serilog
 
     let HomePage(cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
@@ -141,8 +137,8 @@ module Site =
     let Main =
         let logger = Logging.ConfigureLogging()
         let cfg = Config.loadConfig()
-        Async.Start <| Static.Gifs.runSync cfg logger
-        Application.MultiPage(fun ctx endpoint ->
+        Async.Start <| Static.Sync.runSync cfg logger
+        Application.MultiPage(fun _ctx endpoint ->
             match endpoint with
             | EndPoint.Home -> HomePage cfg
             | EndPoint.Blog(slug) -> BlogPost cfg slug

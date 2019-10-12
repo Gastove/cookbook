@@ -6,7 +6,7 @@ module Static =
 
     module Media =
 
-        open GCP
+        open Cookbook.GCP
 
         type Upload =
             {Media : Media
@@ -29,12 +29,7 @@ module Static =
                  Logger = logger
                  Prefix = prefix}
 
-    module Gifs =
-
-        let makeGif name stream =
-            {GCP.Media.MediaType="media/gif"
-             GCP.Media.FileName=name
-             GCP.Media.Body = stream}
+    module Sync =
 
         let uploadAsync (upload: Media.Upload) =
             upload.Logger.Information
@@ -73,9 +68,13 @@ module Static =
                 }
             task
 
-        let syncGifs (dbxClient : Dropbox.DbxClient) (logger : ILogger) (cfg : Configuration)=
-            let uploader = Media.buildUploadMaker cfg logger Constants.StaticAssetsGifsPrefix "media/gif"
-            synchronizeMedia dbxClient Constants.GifsDir uploader
+        let syncGifs (dbxClient : Dropbox.DbxClient) (logger : ILogger) (cfg : Configuration) =
+            let uploadMaker = Media.buildUploadMaker cfg logger Constants.StaticAssetsGifsPrefix "media/gif"
+            synchronizeMedia dbxClient Constants.GifsDir uploadMaker
+
+        let syncImg (dbxClient : Dropbox.DbxClient) (logger : ILogger) (cfg : Configuration) =
+            let uploadMaker = Media.buildUploadMaker cfg logger Constants.StaticAssetsGifsPrefix "image"
+            synchronizeMedia dbxClient Constants.GifsDir uploadMaker
 
         let runSync cfg (logger : ILogger) =
             match Dropbox.Auth.createDbxClient() with
