@@ -80,8 +80,7 @@ module Static =
             match Dropbox.Auth.createDbxClient() with
             | Some dbxClient ->
                 logger.Debug("Client loaded")
-                let sleepSeconds = 60
-                let sleepMilis = sleepSeconds * 1000
+                let sleepMilis = Constants.StaticAssetsResyncIntervalSeconds * 1000
                 async {
                     while true do
                     logger.Debug("Syncing gifs...")

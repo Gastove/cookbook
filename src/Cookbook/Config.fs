@@ -8,6 +8,7 @@ module Constants =
     let BlogDirEnvVar = "BLOG_DIR"
     let BlogDirDefault = "/the_range/test/blog"
     let GifsDir = "/gifs"
+    let StaticAssetsResyncIntervalSeconds = 300
     let StaticAssetsBucket = "static.gastove.com"
     let StaticAssetsGifsPrefix = "gifs"
     let StaticAssetsImgagesPrefix = "img"
