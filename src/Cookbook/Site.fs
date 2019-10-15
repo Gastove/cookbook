@@ -24,11 +24,11 @@ module Templating =
     let logger = LoggerConfiguration().WriteTo.Console().CreateLogger()
 
     // One hour in seconds
-    let MAX_AGE = 3600
+    let MaxAge = 3600
 
     let computeHeaders() =
         [ Http.Header.Custom "Cache-Control"
-              (sprintf "public,max-age=%i" MAX_AGE) ]
+              (sprintf "public,max-age=%i" MaxAge) ]
 
     let WithCacheHeaders content =
         let headers = computeHeaders()
