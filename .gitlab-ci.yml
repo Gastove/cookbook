@@ -17,10 +17,10 @@ build:
   stage: build
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $APP_IMAGE:latest || true
+    - docker pull $APP_IMAGE:$CI_COMMIT_SHA || true
     - >
         docker build
-        --cache-from $APP_IMAGE:latest
+        --cache-from $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:$APP_VERSION
         --tag $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:latest
@@ -35,10 +35,10 @@ build_and_push:
   stage: build
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $APP_IMAGE:latest || true
+    - docker pull $APP_IMAGE:$CI_COMMIT_SHA || true
     - >
         docker build
-        --cache-from $APP_IMAGE:latest
+        --cache-from $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:$APP_VERSION
         --tag $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:latest
