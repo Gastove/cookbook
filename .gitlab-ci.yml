@@ -24,7 +24,7 @@ build:
         --tag $APP_IMAGE:$APP_VERSION
         --tag $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:latest
-        --file build/Dockerfile.App .
+        --file build/Dockerfile .
   except:
     - master
 
@@ -42,7 +42,7 @@ build_and_push:
         --tag $APP_IMAGE:$APP_VERSION
         --tag $APP_IMAGE:$CI_COMMIT_SHA
         --tag $APP_IMAGE:latest
-        --file build/Dockerfile.App .
+        --file build/Dockerfile .
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
     - docker push $APP_IMAGE:$APP_VERSION
     - docker push $APP_IMAGE:latest
