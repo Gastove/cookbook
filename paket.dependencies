@@ -8,7 +8,6 @@ nuget Serilog.AspNetCore
 nuget Dropbox.Api
 nuget FSharp.Core
 nuget FSharp.Data
-nuget Microsoft.AspNetCore.All
 nuget WebSharper
 nuget WebSharper.FSharp
 nuget WebSharper.UI

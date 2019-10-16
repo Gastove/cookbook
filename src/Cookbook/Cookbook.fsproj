@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
         <WebSharperProject>Website</WebSharperProject>
         <WebProjectOutputDir>$(MSBuildThisFileDirectory)/wwwroot</WebProjectOutputDir>
         <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     </PropertyGroup>
+
     <ItemGroup>
         <Compile Include="Blog.fs" />
         <Compile Include="Config.fs" />
@@ -18,6 +19,7 @@
         <Content Include="templates/header.html" CopyToPublishDirectory="Always" />
         <Content Include="templates/post.html" CopyToPublishDirectory="Always" />
     </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Dropbox\Dropbox.fsproj" />
         <ProjectReference Include="..\Xml\Xml.fsproj" />

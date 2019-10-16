@@ -2,3 +2,6 @@ paket-files/
 bin/
 obj/
 /node_modules
+/.ionide
+/.dir-locals.el
+.paket/load/
