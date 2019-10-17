@@ -47,6 +47,7 @@ module Program =
         WebHost
             .CreateDefaultBuilder(args)
             .UseStartup<Startup>()
+            .ConfigureKestrel(fun opts -> opts.AllowSynchronousIO <- true)
             .UseSerilog()
             .Build()
 
