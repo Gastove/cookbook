@@ -1,11 +1,17 @@
 namespace Cookbook
 
 type Configuration =
-    {BlogDir : string}
+    {BlogDir : string
+     StaticAssetsBucket : string}
 
 module Constants =
     let BlogDirEnvVar = "BLOG_DIR"
     let BlogDirDefault = "/the_range/test/blog"
+    let GifsDir = "/gifs"
+    let StaticAssetsResyncIntervalSeconds = 300
+    let StaticAssetsBucket = "static.gastove.com"
+    let StaticAssetsGifsPrefix = "gifs"
+    let StaticAssetsImgagesPrefix = "img"
 
 module Config =
     open System
@@ -17,4 +23,5 @@ module Config =
             then Constants.BlogDirDefault
             else maybeBlogDir
 
-        {BlogDir = blogDir}
+        {BlogDir = blogDir
+         StaticAssetsBucket = Constants.StaticAssetsBucket}

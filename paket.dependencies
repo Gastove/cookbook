@@ -1,3 +1,4 @@
+generate_load_scripts: true
 source https://nuget.org/api/v2
 
 storage:none
@@ -8,6 +9,8 @@ nuget Serilog.AspNetCore
 nuget Dropbox.Api
 nuget FSharp.Core
 nuget FSharp.Data
+nuget Google.Cloud.Storage.V1
+nuget Microsoft.AspNetCore.All
 nuget WebSharper
 nuget WebSharper.FSharp
 nuget WebSharper.UI

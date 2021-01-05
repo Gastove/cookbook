@@ -11,7 +11,6 @@ type EndPoint =
     | [<EndPoint"/feed/atom">] Feed
 
 module Templating =
-    open System
     open WebSharper.UI.Html
 
     open Serilog
@@ -25,11 +24,11 @@ module Templating =
     let logger = LoggerConfiguration().WriteTo.Console().CreateLogger()
 
     // One hour in seconds
-    let MAX_AGE = 3600
+    let MaxAge = 3600
 
     let computeHeaders() =
         [ Http.Header.Custom "Cache-Control"
-              (sprintf "public,max-age=%i" MAX_AGE) ]
+              (sprintf "public,max-age=%i" MaxAge) ]
 
     let WithCacheHeaders content =
         let headers = computeHeaders()
@@ -107,7 +106,6 @@ module Templating =
                            doc.Save(w))
 
 module Site =
-    open WebSharper.UI.Html
 
     let HomePage(cfg : Configuration) =
         match Dropbox.Auth.createDbxClient() with
@@ -137,8 +135,10 @@ module Site =
 
     [<Website>]
     let Main =
+        let logger = Logging.ConfigureLogging()
         let cfg = Config.loadConfig()
-        Application.MultiPage(fun ctx endpoint ->
+        Async.Start <| Static.Sync.runSync cfg logger
+        Application.MultiPage(fun _ctx endpoint ->
             match endpoint with
             | EndPoint.Home -> HomePage cfg
             | EndPoint.Blog(slug) -> BlogPost cfg slug

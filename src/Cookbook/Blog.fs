@@ -4,7 +4,7 @@ module Blog =
 
     let loadPost folder slug (client : Dropbox.DbxClient) =
         async {
-            let! postResponse =
+            use! postResponse =
                 Dropbox.Files.loadFileAsync folder slug client
 
             let! stream =
