@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
         <WebSharperProject>Website</WebSharperProject>
         <WebProjectOutputDir>$(MSBuildThisFileDirectory)/wwwroot</WebProjectOutputDir>
         <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
@@ -27,6 +27,5 @@
         <ProjectReference Include="..\Xml\Xml.fsproj" />
         <ProjectReference Include="..\GCP\GCP.fsproj" />
     </ItemGroup>
-
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
