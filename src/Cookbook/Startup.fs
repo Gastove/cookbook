@@ -51,9 +51,7 @@ module Server =
         (match env.IsDevelopment() with
          | true -> app.UseDeveloperExceptionPage()
          | false ->
-             app
-                 .UseGiraffeErrorHandler(errorHandler)
-                 .UseHttpsRedirection())
+             app.UseGiraffeErrorHandler(errorHandler))
             .UseCors(configureCors)
             .UseStaticFiles()
             .UseResponseCaching()

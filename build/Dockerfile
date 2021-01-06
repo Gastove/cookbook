@@ -9,7 +9,7 @@ RUN dotnet publish -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
 
-EXPOSE 5000, 5001
+EXPOSE 5000
 
 WORKDIR /app
 
