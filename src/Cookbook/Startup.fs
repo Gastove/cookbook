@@ -1,24 +1,29 @@
 namespace Cookbook
 
-open System
-open System.IO
-
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Cors.Infrastructure
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.Hosting
-open Microsoft.Extensions.DependencyInjection
-
-open Giraffe
-
-
 module Server =
+
+    open System
+
+    open Microsoft.AspNetCore.Builder
+    open Microsoft.AspNetCore.Cors.Infrastructure
+    open Microsoft.AspNetCore.Hosting
+    open Microsoft.Extensions.Hosting
+    open Microsoft.Extensions.DependencyInjection
+
     open Giraffe
+
     open Microsoft.Extensions.Logging
 
     let webApp =
-        choose [ GET >=> choose [ route "/" >=> Handlers.indexHandler () ]
+        choose [ GET
+                 >=> choose [ route "/" >=> Handlers.cachingIndexHandler ()
+
+                              routef "/blog/%s" Handlers.cachingBlogPostHandler
+
+                              route "/feed/atom"
+                              >=> Handlers.cachingFeedHandler () ]
                  setStatusCode 404 >=> text "Not Found" ]
+
 
     let errorHandler (ex: Exception) (logger: ILogger) =
         logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
@@ -34,9 +39,10 @@ module Server =
             .AllowAnyHeader()
         |> ignore
 
-    let configureServices (services : IServiceCollection) =
-        services.AddCors()    |> ignore
+    let configureServices (services: IServiceCollection) =
+        services.AddCors() |> ignore
         services.AddGiraffe() |> ignore
+        services.AddResponseCaching() |> ignore
 
     let configureApp (app: IApplicationBuilder) =
         let env =
@@ -50,9 +56,17 @@ module Server =
                  .UseHttpsRedirection())
             .UseCors(configureCors)
             .UseStaticFiles()
+            .UseResponseCaching()
             .UseGiraffe(webApp)
 
 module Main =
+    open System
+    open System.IO
+
+    open Microsoft.AspNetCore.Builder
+    open Microsoft.AspNetCore.Hosting
+    open Microsoft.Extensions.Hosting
+
     open Serilog
 
     [<EntryPoint>]
@@ -60,7 +74,8 @@ module Main =
         Log.Logger <- Logging.ConfigureLogging()
         let contentRoot = Directory.GetCurrentDirectory()
         let webRoot = Path.Combine(contentRoot, "wwwroot")
-
+        // Eventually:
+        //         Async.Start <| Static.Sync.runSync cfg logger
         Host
             .CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(fun webHostBuilder ->
