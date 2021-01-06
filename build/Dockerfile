@@ -1,22 +1,18 @@
-FROM registry.gitlab.com/gastove/containers/dotnet/builder:3 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 
 WORKDIR /build
 COPY . /build
 
-RUN paket restore
-
-FROM build AS release
-
+RUN dotnet tool restore
+RUN dotnet paket restore
 RUN dotnet publish -c Release -o /app
 
-FROM mcr.microsoft.com/dotnet/core/runtime:3.0
+FROM mcr.microsoft.com/dotnet/aspnet:5.0
 
-ENV ASPNETCORE_URLS=http://+:8080
-
-EXPOSE 8080
+EXPOSE 5000
 
 WORKDIR /app
 
-COPY --from=release /app ./
+COPY --from=build /app ./
 
 ENTRYPOINT ["dotnet", "Cookbook.dll"]

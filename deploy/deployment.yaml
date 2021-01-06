@@ -33,7 +33,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - name: http-port
-              containerPort: 8080
+              containerPort: 5000
               protocol: TCP
 
           resources: {}

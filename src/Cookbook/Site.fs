@@ -1,145 +1,198 @@
 namespace Cookbook
 
-open WebSharper
-open WebSharper.Sitelets
-open WebSharper.UI
-open WebSharper.UI.Server
-
-type EndPoint =
-    | [<EndPoint"/">] Home
-    | [<EndPoint"/blog">] Blog of string
-    | [<EndPoint"/feed/atom">] Feed
-
 module Templating =
-    open WebSharper.UI.Html
 
-    open Serilog
+    open Giraffe.ViewEngine
 
-    type MainTemplate = Templating.Template<"templates/main.html">
+    let header pageTitle =
+        head [] [
+            meta [ _charset "utf-8" ]
+            meta [ _name "viewport"
+                   _content "width=device-width, initial-scale=1.0" ]
+            link [ _rel "stylesheet"
+                   _type "text/css"
+                   _href "/css/screen.css" ]
 
-    type HeaderTemplate = Templating.Template<"templates/header.html">
+            link [ _rel "stylesheet"
+                   _type "text/css"
+                   _href "/css/prism.css" ]
 
-    type PostTemplate = Templating.Template<"templates/post.html">
+            link [ _rel "stylesheet"
+                   _href "https://fonts.googleapis.com/css?family=Fira+Sans|Roboto+Mono" ]
 
-    let logger = LoggerConfiguration().WriteTo.Console().CreateLogger()
+            title [] [ encodedText pageTitle ]
+        ]
 
-    // One hour in seconds
-    let MaxAge = 3600
-
-    let computeHeaders() =
-        [ Http.Header.Custom "Cache-Control"
-              (sprintf "public,max-age=%i" MaxAge) ]
-
-    let WithCacheHeaders content =
-        let headers = computeHeaders()
-        content |> Content.WithHeaders headers
-
-    // Compute a menubar where the menu item for the given endpoint is active
-    let MenuBar (ctx : Context<EndPoint>) endpoint : Doc list =
-        let (=>) txt act =
-            li [ if endpoint = act then yield attr.``class`` "active" ]
-                [ a [ attr.href (ctx.Link act) ] [ text txt ] ]
-        [ "Home" => EndPoint.Home ]
-
-    let PageHeader(title : string) =
-        HeaderTemplate()
-            .Title(title)
-            .Doc()
-
-    // Footer requires no templating, so we just compute it.
-    let Footer(extra : Doc list) =
-        let sep = text " | "
+    let footer extra =
+        let sep = str " | "
 
         let baseFooter =
-            [ a [ attr.href "/" ] [ text "Home" ]
+            [ a [ _href "/" ] [ str "Home" ]
               sep
-              a [ attr.href "https://gastove.com" ] [ text "gastove.com" ]
+              a [ _href "https://gastove.com" ] [
+                  str "gastove.com"
+              ]
               sep
-              a [ attr.href "https://gitlab.com/gastove" ] [ text "Gitlab" ]
+              a [ _href "https://gitlab.com/gastove" ] [
+                  str "Gitlab"
+              ]
               sep
-              a [ attr.href "https://github.com/Gastove" ] [ text "Github" ]
+              a [ _href "https://github.com/Gastove" ] [
+                  str "Github"
+              ]
               sep
-              a [ attr.href "/feed/atom" ] [ text "Atom" ]
-              br [] []
-              br [] []
-              text "© Ross Donaldson" ]
+              a [ _href "/feed/atom" ] [ str "Atom" ]
+              br []
+              br []
+              str "© Ross Donaldson" ]
+
         footer [] (List.append baseFooter extra)
 
-    let Main(blogPosts : BlogPost array) =
-        let title = "blog.gastove.com"
+    let postSummary (blogPost: BlogPost) =
+        div [] [
+            h3 [] [
+                a [ _href $"/blog/{blogPost.Meta.Slug}" ] [
+                    str $"{blogPost.Title}"
+                ]
+            ]
+            str $"{blogPost.Meta.Summary}"
+        ]
 
-        let postSummaries =
-            blogPosts
-            |> Array.sortBy (fun post -> post.Meta.PublicationDate)
-            |> Array.rev
-            |> Array.map
-                (fun (post : BlogPost) ->
-                MainTemplate.PostSummary().PostTitle(post.Title)
-                            .PostSlug(post.Meta.Slug)
-                            .Summary(post.Meta.Summary).Doc())
-        Content.Page(MainTemplate()
-                .Header(PageHeader title)
-                .Title(title)
-                .PostSumaries(postSummaries)
-                .Footer(Footer List.Empty)
-                .Doc()) |> WithCacheHeaders
+    let postSummaries blogTitle (posts: BlogPost array) =
+        let hdr =
+            h1 [ _class "blog-title" ] [
+                encodedText $"> {blogTitle}_"
+            ]
 
-    let Post(post : BlogPost) =
-        let scripts = [ script [ attr.src "/js/prism.js" ] [] ]
-        Content.Page(PostTemplate()
-                .Header(PageHeader post.Title)
-                .PostTitle(post.Title)
-                .Body(post.Body)
-                .PostDate(post.Meta.PublicationDate.ToLongDateString())
-                .Tags(post.Meta.Tags)
-                .Footer(Footer scripts)
-                .Doc()) |> WithCacheHeaders
+        let summaries =
+            posts
+            |> Array.sortByDescending (fun p -> p.Meta.PublicationDate)
+            |> Array.map postSummary
+            |> List.ofArray
 
-    let Feed(doc : System.Xml.XmlDocument) =
-        let feedHeaders =
-            [ [ Http.Header.Custom "Content-Type" "application/atom+xml" ]
-              computeHeaders() ]
-            |> List.concat
-        Content.Custom(Status = Http.Status.Ok, Headers = feedHeaders,
-                       WriteBody = fun stream ->
-                           use w = new System.IO.StreamWriter(stream)
-                           doc.Save(w))
+        [ hdr; hr [] ] @ summaries @ [ hr [] ]
 
-module Site =
+    let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
-    let HomePage(cfg : Configuration) =
-        match Dropbox.Auth.createDbxClient() with
-        | Some client ->
-            use client = client
-            let posts = Blog.loadAllPosts cfg.BlogDir client
-            Templating.Main posts
-        | None -> Templating.Main [||]
+    let postView (blogPost: BlogPost) =
+        let publicationDate = blogPost.Meta.PublicationDate.ToString("dddd, MMMM d yyyy")
+        [ div [ _class "post" ] [
+            h2 [ _class "post-title" ] [
+                a [ _href "/" ] [ str "> $HOME" ]
+                str $"/blog/{blogPost.Title}"
+            ]
+            hr []
+            div [] [ rawText blogPost.Body ]
+            hr []
+          ]
+          div [ _class "post-info" ] [
+              p [] [
+                  str $"Posted: {publicationDate}"
+              ]
+              p [] [
+                  str $"Tags: {blogPost.Meta.Tags}"
+              ]
+          ] ]
 
-    let BlogPost (cfg : Configuration) slug =
-        let postFile = slug + ".html"
-        match Dropbox.Auth.createDbxClient() with
-        | Some client ->
-            use client = client
-            let post = Blog.loadPost cfg.BlogDir postFile client
-            Templating.Post post
-        | None -> Templating.Main [||]
+    let page pageTitle footerExtras pageBody =
+        html [] [
+            header pageTitle
+            body [] [
+                div [ _class "content" ] pageBody
+            ]
+            footer footerExtras
+        ]
 
-    let PublishFeed(cfg : Configuration) =
-        match Dropbox.Auth.createDbxClient() with
-        | Some client ->
-            use client = client
-            let posts = Blog.loadAllPosts cfg.BlogDir client |> Array.toList
-            let feed = Feed.formatFeed posts
-            Templating.Feed feed
-        | None -> WebSharper.Sitelets.Content.NotFound
+module Handlers =
 
-    [<Website>]
-    let Main =
-        let logger = Logging.ConfigureLogging()
-        let cfg = Config.loadConfig()
-        Async.Start <| Static.Sync.runSync cfg logger
-        Application.MultiPage(fun _ctx endpoint ->
-            match endpoint with
-            | EndPoint.Home -> HomePage cfg
-            | EndPoint.Blog(slug) -> BlogPost cfg slug
-            | EndPoint.Feed -> PublishFeed cfg)
+    open FSharp.Control.Tasks
+
+    open Giraffe
+
+    // Caching TTL
+    let oneHour = 3600
+
+    let indexHandler () =
+        handleContext
+            (fun ctx ->
+                task {
+                    let cfg = Config.loadConfig ()
+                    let blogTitle = "blog.gastove.com"
+
+                    match Dropbox.Auth.createDbxClient () with
+                    | Some client ->
+                        use client = client
+                        let posts = Blog.loadAllPosts cfg.BlogDir client
+
+                        let summaries =
+                            posts |> (Templating.postSummaries blogTitle)
+
+                        let view =
+                            Templating.page blogTitle List.empty summaries
+
+                        return! ctx.WriteHtmlViewAsync view
+
+                    | None ->
+                        ctx.SetStatusCode 500
+                        return Some ctx
+                })
+
+    let feedHandler () =
+        let cfg = Config.loadConfig ()
+
+        handleContext (fun ctx ->
+            task {
+                    match Dropbox.Auth.createDbxClient () with
+                    | Some client ->
+                        use client = client
+                        let posts = Blog.loadAllPosts cfg.BlogDir client
+
+                        let feed = Feed.formatFeed <| List.ofArray posts
+
+                        ctx.SetContentType "application/atom+xml"
+
+                        return! ctx.WriteBytesAsync <| System.Text.Encoding.UTF8.GetBytes(feed.OuterXml)
+
+                    | None ->
+                        ctx.SetStatusCode 500
+                        return Some ctx
+                }
+            )
+
+    let blogPostHandler (slug: string) =
+
+        handleContext
+            (fun ctx ->
+                task {
+                    let cfg = Config.loadConfig ()
+                    let blogTitle = "blog.gastove.com"
+                    let postFile = $"{slug}.html"
+
+                    match Dropbox.Auth.createDbxClient () with
+                    | Some client ->
+                        use client = client
+                        let post = Blog.loadPost cfg.BlogDir postFile client
+
+                        let postPage = post |> Templating.postView
+
+                        let view =
+                            Templating.page blogTitle Templating.postFooterExtras postPage
+
+                        return! ctx.WriteHtmlViewAsync view
+
+                    | None ->
+                        ctx.SetStatusCode 500
+                        return Some ctx
+                })
+
+    let cachingIndexHandler () =
+        publicResponseCaching oneHour None
+        >=> indexHandler()
+
+    let cachingFeedHandler () =
+        publicResponseCaching oneHour None
+        >=> feedHandler()
+
+    let cachingBlogPostHandler blogPost =
+        publicResponseCaching oneHour None
+        >=> (blogPostHandler blogPost)

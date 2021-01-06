@@ -1,12 +1,8 @@
-// These are all actual dependencies of this project, but the entire thing
-// *explodes* if I try to move these deps into paket. I'll need to fix that...
-// eventually.
-
+Dropbox.Api
 Serilog
 Serilog.Sinks.Console
 Serilog.AspNetCore
 FSharp.Core
-WebSharper
-WebSharper.FSharp
-WebSharper.UI
-WebSharper.AspNetCore
+Giraffe
+Giraffe.ViewEngine
+Ply

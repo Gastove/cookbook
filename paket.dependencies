@@ -11,7 +11,6 @@ nuget FSharp.Core
 nuget FSharp.Data
 nuget Google.Cloud.Storage.V1
 nuget Microsoft.AspNetCore.All
-nuget WebSharper
-nuget WebSharper.FSharp
-nuget WebSharper.UI
-nuget WebSharper.AspNetCore
+nuget Giraffe 5.0.0-rc-6
+nuget Giraffe.ViewEngine
+nuget Ply
