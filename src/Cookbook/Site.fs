@@ -75,6 +75,7 @@ module Templating =
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
     let postView (blogPost: BlogPost) =
+        let publicationDate = blogPost.Meta.PublicationDate.ToString("dddd, MMMM d yyyy")
         [ div [ _class "post" ] [
             h2 [ _class "post-title" ] [
                 a [ _href "/" ] [ str "> $HOME" ]
@@ -86,7 +87,7 @@ module Templating =
           ]
           div [ _class "post-info" ] [
               p [] [
-                  str $"Posted: {blogPost.Meta.PublicationDate}"
+                  str $"Posted: {publicationDate}"
               ]
               p [] [
                   str $"Tags: {blogPost.Meta.Tags}"
