@@ -171,7 +171,10 @@ body .content sup {
   vertical-align: super;
   font-size: 0.7em;
 }
-body .content code {
+body .content pre {
+  line-height: 1;
+}
+body .content pre code {
   font: normal 100% "Roboto Mono", monospace;
 }
 

@@ -175,8 +175,12 @@ body {
             font-size: 0.7em;
         }
 
-        code {
-            font: normal 100% 'Roboto Mono', monospace;
+        pre {
+            line-height: 1;
+
+            code {
+                font: normal 100% 'Roboto Mono', monospace;
+            }
         }
     }
 }

@@ -22,6 +22,6 @@
     },
     "homepage": "https://gitlab.com/gastove/cookbook#readme",
     "devDependencies": {
-        "sass": "^1.17.1"
+        "sass": "^1.32.2"
     }
 }
