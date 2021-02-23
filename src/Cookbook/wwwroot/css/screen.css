@@ -132,6 +132,9 @@ body .content p strong {
 body .content p em {
   font-style: italic;
 }
+body .content p code {
+  background-color: lightgray;
+}
 body .content blockquote {
   margin: 1.5em 10px;
   border-left: 2px solid #a9a69b;
