@@ -1,0 +1,65 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus
+spec:
+  serviceAccountName: prometheus
+  serviceMonitorSelector:
+    matchLabels:
+      monitor: cookbook-service-monitor
+  resources:
+    requests:
+      memory: 400Mi
+  enableAdminAPI: false
+  containers:
+    - name: sidecar
+      image: gcr.io/stackdriver-prometheus/stackdriver-prometheus-sidecar:0.8.2
+      args:
+      - "--stackdriver.project-id=kubernation"
+      - "--prometheus.wal-directory=/data/wal"
+      - "--prometheus.api-address=http://127.0.0.1:9090"
+      - "--stackdriver.kubernetes.location=us-west1-a"
+      - "--stackdriver.kubernetes.cluster-name=kubernation"
+      ports:
+      - name: sidecar
+        containerPort: 9091
+      volumeMounts:
+      - name: prometheus-prometheus-db
+        mountPath: /data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  type: NodePort
+  ports:
+  - name: prom
+    nodePort: 30900
+    port: 9090
+    protocol: TCP
+    targetPort: prom
+  selector:
+    prometheus: prometheus
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: cookbook

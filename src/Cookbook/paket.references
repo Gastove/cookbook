@@ -2,6 +2,7 @@ Dropbox.Api
 Serilog
 Serilog.Sinks.Console
 Serilog.AspNetCore
+Serilog.Sinks.GoogleCloudLogging
 FSharp.Core
 Giraffe
 Giraffe.ViewEngine

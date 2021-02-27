@@ -1,0 +1,13 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cookbook-service-monitor
+  labels:
+    monitor: cookbook-service-monitor
+spec:
+  selector:
+    matchLabels:
+      run: cookbook-webapp
+  endpoints:
+  - port: web

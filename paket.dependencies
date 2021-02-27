@@ -6,6 +6,7 @@ storage:none
 nuget Serilog
 nuget Serilog.Sinks.Console
 nuget Serilog.AspNetCore
+nuget Serilog.Sinks.GoogleCloudLogging
 nuget Dropbox.Api
 nuget FSharp.Core
 nuget FSharp.Data
