@@ -12,6 +12,8 @@ module Server =
 
     open Giraffe
 
+    open Prometheus
+
     open Microsoft.Extensions.Logging
 
     let webApp =
@@ -55,6 +57,9 @@ module Server =
             .UseCors(configureCors)
             .UseStaticFiles()
             .UseResponseCaching()
+            .UseRouting()
+            .UseEndpoints(fun endpoints -> endpoints.MapMetrics() |> ignore)
+            .UseHttpMetrics()
             .UseGiraffe(webApp)
 
 module Main =
