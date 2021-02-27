@@ -6,3 +6,5 @@ FSharp.Core
 Giraffe
 Giraffe.ViewEngine
 Ply
+prometheus-net
+prometheus-net.AspNetCore
