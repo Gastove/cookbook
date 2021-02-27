@@ -14,3 +14,5 @@ nuget Microsoft.AspNetCore.All
 nuget Giraffe 5.0.0-rc-6
 nuget Giraffe.ViewEngine
 nuget Ply
+nuget prometheus-net
+nuget prometheus-net.AspNetCore
