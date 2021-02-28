@@ -64,7 +64,6 @@ deploy:
     # We deploy in three steps so we can update the image tag use in the deployment
     - kubectl -n "$NAMESPACE" apply -f deploy/service.yaml
     - kubectl -n "$NAMESPACE" apply -f deploy/namespace.yaml
-    - kubectl -n "$NAMESPACE" apply -f deploy/service-monitor.yaml
     - cat deploy/deployment.yaml | sed s/REPLACE/"$CI_COMMIT_SHA"/ | kubectl -n "$NAMESPACE" apply -f -
   only:
     - master
