@@ -3,12 +3,10 @@ namespace Cookbook
 module Server =
 
     open System
-    open System.Net
 
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Cors.Infrastructure
     open Microsoft.AspNetCore.Hosting
-    open Microsoft.AspNetCore.HttpOverrides
     open Microsoft.Extensions.Hosting
     open Microsoft.Extensions.DependencyInjection
 
@@ -20,7 +18,6 @@ module Server =
 
     module Ports =
         let Http = 5000
-        let Https = 5001
         let Metrics = 5005
 
     let webApp =
