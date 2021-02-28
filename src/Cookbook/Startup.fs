@@ -65,7 +65,7 @@ module Server =
             .UseEndpoints(fun endpoints ->
                 endpoints
                     .MapMetrics()
-                    .RequireHost([| $"localhost:{Ports.Metrics}" |])
+                    .RequireHost([| $"*:{Ports.Metrics}" |])
                 |> ignore
 
                 endpoints.MapHealthChecks("/healthz") |> ignore)
