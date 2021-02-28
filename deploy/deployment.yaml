@@ -59,9 +59,6 @@ spec:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
 
-            - name: ASPNETCORE_URLS
-              value: http://+:5000
-
           livenessProbe:
             httpGet:
               path: /healthz
