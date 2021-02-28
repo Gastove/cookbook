@@ -94,8 +94,8 @@ module Main =
             .ConfigureWebHost(fun host ->
                 host.ConfigureKestrel
                     (fun kestrelConfig ->
-                        kestrelConfig.ListenLocalhost(Server.Ports.Http)
-                        kestrelConfig.ListenLocalhost(Server.Ports.Metrics))
+                        kestrelConfig.ListenAnyIP(Server.Ports.Http)
+                        kestrelConfig.ListenAnyIP(Server.Ports.Metrics))
                 |> ignore)
             .ConfigureWebHostDefaults(fun webHostBuilder ->
                 webHostBuilder
