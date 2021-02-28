@@ -88,7 +88,9 @@ module Main =
         let contentRoot = Directory.GetCurrentDirectory()
         let webRoot = Path.Combine(contentRoot, "wwwroot")
         // Eventually:
-        //         Async.Start <| Static.Sync.runSync cfg logger
+
+        Async.Start <| Static.Sync.runSync (Config.loadConfig())
+
         Host
             .CreateDefaultBuilder(args)
             .UseSerilog(Logging.ConfigureRuntimeLogger)

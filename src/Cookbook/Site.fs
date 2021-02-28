@@ -135,7 +135,7 @@ module Handlers =
                     match Dropbox.Auth.createDbxClient () with
                     | Some client ->
                         use client = client
-                        let posts = Blog.loadAllPosts cfg.BlogDir client
+                        let! posts = Blog.loadAllPosts cfg.BlogDir client
 
                         let summaries =
                             posts |> (Templating.postSummaries blogTitle)
@@ -160,7 +160,8 @@ module Handlers =
                     match Dropbox.Auth.createDbxClient () with
                     | Some client ->
                         use client = client
-                        let posts = Blog.loadAllPosts cfg.BlogDir client
+
+                        let! posts = Blog.loadAllPosts cfg.BlogDir client
 
                         let feed = Feed.formatFeed <| List.ofArray posts
 
@@ -188,8 +189,7 @@ module Handlers =
                     | Some client ->
                         use client = client
 
-                        let post =
-                            Blog.loadPost cfg.BlogDir postFile client
+                        let! post = Blog.loadPost cfg.BlogDir postFile client
 
                         let postPage = post |> Templating.postView
 
