@@ -49,6 +49,7 @@ module Server =
         services.AddCors() |> ignore
         services.AddGiraffe() |> ignore
         services.AddResponseCaching() |> ignore
+        services.AddHealthChecks() |> ignore
 
     let configureApp (app: IApplicationBuilder) =
         let env =
@@ -65,7 +66,9 @@ module Server =
                 endpoints
                     .MapMetrics()
                     .RequireHost([| $"localhost:{Ports.Metrics}" |])
-                |> ignore)
+                |> ignore
+
+                endpoints.MapHealthChecks("/healthz") |> ignore)
             .UseHttpMetrics()
             .UseGiraffe(webApp)
 
@@ -92,8 +95,7 @@ module Main =
                 host.ConfigureKestrel
                     (fun kestrelConfig ->
                         kestrelConfig.ListenLocalhost(Server.Ports.Http)
-                        kestrelConfig.ListenLocalhost(Server.Ports.Metrics)
-                        )
+                        kestrelConfig.ListenLocalhost(Server.Ports.Metrics))
                 |> ignore)
             .ConfigureWebHostDefaults(fun webHostBuilder ->
                 webHostBuilder
