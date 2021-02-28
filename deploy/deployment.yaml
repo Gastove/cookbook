@@ -35,6 +35,10 @@ spec:
             - name: http-port
               containerPort: 5000
               protocol: TCP
+            - name: metrics
+              port: 5005
+              targetPort: 5005
+              protocol: TCP
 
           resources: {}
 

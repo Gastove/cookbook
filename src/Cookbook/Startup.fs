@@ -16,6 +16,10 @@ module Server =
 
     open Microsoft.Extensions.Logging
 
+    module Ports =
+        let Http = 5000
+        let Metrics = 5005
+
     let webApp =
         choose [ GET
                  >=> choose [ route "/" >=> Handlers.cachingIndexHandler ()
@@ -57,7 +61,11 @@ module Server =
             .UseStaticFiles()
             .UseResponseCaching()
             .UseRouting()
-            .UseEndpoints(fun endpoints -> endpoints.MapMetrics() |> ignore)
+            .UseEndpoints(fun endpoints ->
+                endpoints
+                    .MapMetrics()
+                    .RequireHost([| $"localhost:{Ports.Metrics}" |])
+                |> ignore)
             .UseHttpMetrics()
             .UseGiraffe(webApp)
 
@@ -80,6 +88,13 @@ module Main =
         //         Async.Start <| Static.Sync.runSync cfg logger
         Host
             .CreateDefaultBuilder(args)
+            .ConfigureWebHost(fun host ->
+                host.ConfigureKestrel
+                    (fun kestrelConfig ->
+                        kestrelConfig.ListenLocalhost(Server.Ports.Http)
+                        kestrelConfig.ListenLocalhost(Server.Ports.Metrics)
+                        )
+                |> ignore)
             .ConfigureWebHostDefaults(fun webHostBuilder ->
                 webHostBuilder
                     .UseContentRoot(contentRoot)
