@@ -18,4 +18,9 @@ spec:
     protocol: TCP
     targetPort: 5000
 
+  - name: metrics
+    port: 5005
+    protocol: TCP
+    targetPort: 5005
+
   type: NodePort
