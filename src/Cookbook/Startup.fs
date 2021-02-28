@@ -3,10 +3,12 @@ namespace Cookbook
 module Server =
 
     open System
+    open System.Net
 
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Cors.Infrastructure
     open Microsoft.AspNetCore.Hosting
+    open Microsoft.AspNetCore.HttpOverrides
     open Microsoft.Extensions.Hosting
     open Microsoft.Extensions.DependencyInjection
 
@@ -18,6 +20,7 @@ module Server =
 
     module Ports =
         let Http = 5000
+        let Https = 5001
         let Metrics = 5005
 
     let webApp =
@@ -84,13 +87,14 @@ module Main =
 
     [<EntryPoint>]
     let main args =
-        Log.Logger <- Logging.ConfigureLogging()
+        Log.Logger <- Logging.ConfigureBootstrapLogger()
         let contentRoot = Directory.GetCurrentDirectory()
         let webRoot = Path.Combine(contentRoot, "wwwroot")
         // Eventually:
         //         Async.Start <| Static.Sync.runSync cfg logger
         Host
             .CreateDefaultBuilder(args)
+            .UseSerilog(Logging.ConfigureRuntimeLogger)
             .ConfigureWebHost(fun host ->
                 host.ConfigureKestrel
                     (fun kestrelConfig ->
@@ -103,7 +107,6 @@ module Main =
                     .UseWebRoot(webRoot)
                     .Configure(Action<IApplicationBuilder> Server.configureApp)
                     .ConfigureServices(Server.configureServices)
-                    .UseSerilog()
                 |> ignore)
             .Build()
             .Run()
