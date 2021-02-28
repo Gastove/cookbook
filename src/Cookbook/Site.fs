@@ -75,7 +75,9 @@ module Templating =
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
     let postView (blogPost: BlogPost) =
-        let publicationDate = blogPost.Meta.PublicationDate.ToString("dddd, MMMM d yyyy")
+        let publicationDate =
+            blogPost.Meta.PublicationDate.ToString("dddd, MMMM d yyyy")
+
         [ div [ _class "post" ] [
             h2 [ _class "post-title" ] [
                 a [ _href "/" ] [ str "> $HOME" ]
@@ -108,6 +110,17 @@ module Handlers =
     open FSharp.Control.Tasks
 
     open Giraffe
+    open Prometheus
+
+    let IndexHits =
+        Metrics.CreateCounter("index_gets", "How many hits to the root resource of the blog?")
+
+    let PostHits =
+        Metrics.CreateCounter(
+            "blog_post_hits",
+            "How many hits to blog posts?",
+            CounterConfiguration(LabelNames = [| "post" |])
+        )
 
     // Caching TTL
     let oneHour = 3600
@@ -130,6 +143,7 @@ module Handlers =
                         let view =
                             Templating.page blogTitle List.empty summaries
 
+                        IndexHits.Inc()
                         return! ctx.WriteHtmlViewAsync view
 
                     | None ->
@@ -140,8 +154,9 @@ module Handlers =
     let feedHandler () =
         let cfg = Config.loadConfig ()
 
-        handleContext (fun ctx ->
-            task {
+        handleContext
+            (fun ctx ->
+                task {
                     match Dropbox.Auth.createDbxClient () with
                     | Some client ->
                         use client = client
@@ -151,13 +166,14 @@ module Handlers =
 
                         ctx.SetContentType "application/atom+xml"
 
-                        return! ctx.WriteBytesAsync <| System.Text.Encoding.UTF8.GetBytes(feed.OuterXml)
+                        return!
+                            ctx.WriteBytesAsync
+                            <| System.Text.Encoding.UTF8.GetBytes(feed.OuterXml)
 
                     | None ->
                         ctx.SetStatusCode 500
                         return Some ctx
-                }
-            )
+                })
 
     let blogPostHandler (slug: string) =
 
@@ -171,12 +187,16 @@ module Handlers =
                     match Dropbox.Auth.createDbxClient () with
                     | Some client ->
                         use client = client
-                        let post = Blog.loadPost cfg.BlogDir postFile client
+
+                        let post =
+                            Blog.loadPost cfg.BlogDir postFile client
 
                         let postPage = post |> Templating.postView
 
                         let view =
                             Templating.page blogTitle Templating.postFooterExtras postPage
+
+                        PostHits.Labels([| slug |]).Inc()
 
                         return! ctx.WriteHtmlViewAsync view
 
@@ -187,11 +207,11 @@ module Handlers =
 
     let cachingIndexHandler () =
         publicResponseCaching oneHour None
-        >=> indexHandler()
+        >=> indexHandler ()
 
     let cachingFeedHandler () =
         publicResponseCaching oneHour None
-        >=> feedHandler()
+        >=> feedHandler ()
 
     let cachingBlogPostHandler blogPost =
         publicResponseCaching oneHour None

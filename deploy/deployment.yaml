@@ -37,7 +37,6 @@ spec:
               protocol: TCP
             - name: metrics
               port: 5005
-              targetPort: 5005
               protocol: TCP
 
           resources: {}
