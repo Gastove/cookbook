@@ -54,27 +54,6 @@ module Server =
         services.AddResponseCaching() |> ignore
         services.AddHealthChecks() |> ignore
 
-        // services.AddHttpsRedirection
-        //     (fun options ->
-        //         options.HttpsPort = (Nullable Ports.Https)
-        //         |> ignore)
-        // |> ignore
-
-        // services.Configure<ForwardedHeadersOptions>
-        //     (fun (options: ForwardedHeadersOptions) ->
-        //         // Google Cloud Platform load balancers
-        //         options.KnownNetworks.Add(IPNetwork(IPAddress.Parse("130.211.0.0"), 22))
-        //         options.KnownNetworks.Add(IPNetwork(IPAddress.Parse("35.191.0.0"), 16))
-        //         // GKE service which proxies the request as well.
-        //         options.KnownNetworks.Add(IPNetwork(IPAddress.Parse("10.0.0.0"), 8))
-
-        //         options.ForwardedHeaders <-
-        //             ForwardedHeaders.XForwardedFor
-        //             ||| ForwardedHeaders.XForwardedProto
-
-        //         options.ForwardLimit <- 2)
-        |> ignore
-
     let configureApp (app: IApplicationBuilder) =
         let env =
             app.ApplicationServices.GetService<IWebHostEnvironment>()
