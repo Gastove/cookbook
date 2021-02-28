@@ -12,5 +12,5 @@ module Logging =
             .MinimumLevel.Override("Microsoft", Events.LogEventLevel.Information)
             .Enrich.FromLogContext()
             .WriteTo.Console()
-            .WriteTo.GoogleCloudLogging(gclConfig)
+            // .WriteTo.GoogleCloudLogging(gclConfig)
             .CreateLogger()
