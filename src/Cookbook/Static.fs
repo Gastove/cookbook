@@ -35,7 +35,7 @@ module Static =
         module Html =
             open Giraffe.ViewEngine
 
-            let link url = li [] [ a [ _href url ] [ str url ] ]
+            let link fileName url = li [] [ a [ _href url ] [ str fileName ] ]
 
             let index links =
                 html [] [
@@ -56,9 +56,9 @@ module Static =
         let createIndex (fileNames: string seq) (cfg: Configuration) =
             fileNames
             |> Seq.map
-                (fun url ->
-                    $"http://{cfg.StaticAssetsBucket}/gifs/{url}"
-                    |> Html.link)
+                (fun fileName ->
+                    $"http://{cfg.StaticAssetsBucket}/gifs/{fileName}"
+                    |> Html.link fileName)
             |> Seq.toList
             |> Html.index
             |> Giraffe.ViewEngine.RenderView.AsBytes.htmlDocument

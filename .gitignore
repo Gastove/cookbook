@@ -6,3 +6,4 @@ obj/
 /.ionide
 /.dir-locals.el
 /.ionide
+/cookbook-gke.json
