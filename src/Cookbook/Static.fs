@@ -13,6 +13,11 @@ module Static =
               Config: Configuration
               Prefix: string }
 
+            static member Create media cfg pre =
+                { Media = media
+                  Config = cfg
+                  Prefix = pre }
+
         type UploadMaker = string -> System.IO.Stream -> Result<Upload, string>
         type UploadMakerMaker = Configuration -> string -> string -> UploadMaker
 
@@ -27,6 +32,14 @@ module Static =
 
     module Sync =
 
+        module Html =
+            open Giraffe.ViewEngine
+
+            let link url = a [ _href url ] [ str url ]
+
+            let index links = html [] [ body [] [ div [] links ] ]
+
+
         let uploadAsync (upload: Media.Upload) (logger: ILogger) =
             logger.Information(
                 "Uploading file {name} to {bucket}/{prefix}",
@@ -35,12 +48,31 @@ module Static =
                 upload.Prefix
             )
 
-            GCP.Storage.put upload.Config.StaticAssetsBucket upload.Prefix upload.Media
+            GCP.Storage.put upload.Config.StaticAssetsBucket upload.Prefix upload.Media logger
+
+        let createIndex (fileNames: string seq) (cfg: Configuration) =
+            fileNames
+            |> Seq.map
+                (fun url ->
+                    $"http://{cfg.StaticAssetsBucket}/gifs/{url}"
+                    |> Html.link)
+            |> Seq.toList
+            |> Html.index
+            |> Giraffe.ViewEngine.RenderView.AsBytes.htmlDocument
+
+        let createAndUploadIndex (fileNames: string seq) (cfg: Configuration) (logger: ILogger) =
+            let index = createIndex fileNames cfg
+            let indexStream = new System.IO.MemoryStream(index)
+
+            Cookbook.GCP.Media.Create "index.html" indexStream
+            |> Result.map (fun media -> Media.Upload.Create media cfg "gifs")
+            |> Result.map (fun upload -> uploadAsync upload logger)
 
         let synchronizeMedia
             (dbxClient: Dropbox.DbxClient)
             (mediaDir: string)
             (logger: ILogger)
+            (cfg: Configuration)
             (uploadMaker: Media.UploadMaker)
             =
             async {
@@ -70,6 +102,12 @@ module Static =
                             })
                     |> Async.Parallel
 
+                match createAndUploadIndex fileNames cfg logger with
+                | Ok (indexUpload) ->
+                    let! indexResult = indexUpload
+                    logger.Information("Uploaded index to {indexResult}", indexResult)
+                | Error (e) -> logger.Error("Failed to create or upload index", e)
+
                 return ()
             }
 
@@ -77,16 +115,17 @@ module Static =
             let uploadMaker =
                 Media.buildUploadMaker cfg Constants.StaticAssetsGifsPrefix
 
-            synchronizeMedia dbxClient Constants.GifsDir logger uploadMaker
+            synchronizeMedia dbxClient Constants.GifsDir logger cfg uploadMaker
 
-        let syncImgs (dbxClient: Dropbox.DbxClient) (logger: ILogger) (cfg: Configuration) =
-            let uploadMaker =
-                Media.buildUploadMaker cfg Constants.StaticAssetsImgagesPrefix
+        // let syncImgs (dbxClient: Dropbox.DbxClient) (logger: ILogger) (cfg: Configuration) =
+        //     let uploadMaker =
+        //         Media.buildUploadMaker cfg Constants.StaticAssetsImgagesPrefix
 
-            synchronizeMedia dbxClient Constants.GifsDir logger uploadMaker
+        //     synchronizeMedia dbxClient Constants.GifsDir logger uploadMaker
 
         let runSync cfg =
             let logger = Log.Logger
+
             match Dropbox.Auth.createDbxClient () with
             | Some dbxClient ->
                 logger.Debug("Client loaded")
@@ -99,7 +138,7 @@ module Static =
                         logger.Debug("Syncing static assets...")
 
                         do! syncGifs dbxClient logger cfg
-                        do! syncImgs dbxClient logger cfg
+                        // do! syncImgs dbxClient logger cfg
 
                         logger.Debug($"Waiting {sleepMilis} millis to sync again...")
 

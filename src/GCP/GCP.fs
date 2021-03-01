@@ -41,28 +41,43 @@ type Media =
             else
                 None
 
+        let (|Html|_|) fileName =
+            let htmlRe =
+                System.Text.RegularExpressions.Regex(".*\.html$")
+
+            if htmlRe.IsMatch(fileName) then
+                Some Html
+            else
+                None
+
         match fileName with
         | Png -> Ok "image/png"
         | Jpeg -> Ok "image/jpeg"
         | Gif -> Ok "image/gif"
+        | Html -> Ok "text/html"
         | _ -> Error $"couldn't compute media type for {fileName}"
 
 module Storage =
 
     open Google.Cloud.Storage.V1
+    open Google.Apis.Upload
+
+    open Serilog
 
     let getClient () = StorageClient.Create()
 
-    let put bucket prefix (file: Media) =
+    let put bucket prefix (file: Media) (logger: ILogger) =
         let acl =
             Some(PredefinedObjectAcl.PublicRead)
             |> Option.toNullable
 
+        let progress =
+            System.Progress<IUploadProgress>(fun p -> logger.Information $"Wrote {p.BytesSent}, status: {p.Status}")
+
         let options = UploadObjectOptions(PredefinedAcl = acl)
         let client = getClient ()
 
-        let objectName =
-            [| prefix; file.FileName |] |> String.concat "/"
+        let objectName = $"{prefix}/{file.FileName}"
 
         async {
             let! obj =
@@ -71,7 +86,8 @@ module Storage =
                     objectName = objectName,
                     contentType = file.MediaType,
                     source = file.Body,
-                    options = options
+                    options = options,
+                    progress = progress
                 )
                 |> Async.AwaitTask
 
