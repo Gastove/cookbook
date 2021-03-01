@@ -25,8 +25,7 @@ module Logging =
         =
         let cfg =
             configuration
-                // .ReadFrom
-                // .Configuration(context.Configuration)
+                .Destructure.FSharpTypes()
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()

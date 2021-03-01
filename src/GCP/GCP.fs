@@ -72,7 +72,7 @@ module Storage =
             |> Option.toNullable
 
         let progress =
-            System.Progress<IUploadProgress>(fun p -> logger.Information $"Wrote {p.BytesSent}, status: {p.Status}")
+            System.Progress<IUploadProgress>(fun p -> logger.Information("Uploading {FileName}; wrote {BytesSent}, status: {Status}", file.FileName, p.BytesSent, p.Status))
 
         let options = UploadObjectOptions(PredefinedAcl = acl)
         let client = getClient ()
