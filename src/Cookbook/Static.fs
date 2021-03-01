@@ -35,11 +35,21 @@ module Static =
         module Html =
             open Giraffe.ViewEngine
 
-            let link fileName url = li [] [ a [ _href url ] [ str fileName ] ]
+            let link fileName url =
+                li [] [
+                    a [ _href url ] [ str fileName ]
+                ]
 
             let index links =
                 html [] [
-                    body [] [ div [] [ ul [] links ] ]
+                    body [] [
+                        div [] [
+                            h3 [] [
+                                str "Look upon my gifs ye mighty, and despair ヽ(⌐■_■)ノ♪♬"
+                            ]
+                            ul [] links
+                        ]
+                    ]
                 ]
 
 
