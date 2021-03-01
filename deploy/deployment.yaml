@@ -59,6 +59,9 @@ spec:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
 
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/etc/gke/credentials.json"
+
           livenessProbe:
             httpGet:
               path: /healthz
@@ -74,6 +77,18 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 300
             timeoutSeconds: 3
+
+          volumeMounts:
+            - name: secret
+              mountPath: /etc/gke/
+              readOnly: true
+      volumes:
+        - name: secret
+          secret:
+            secretName: cookbook-secrets
+            items:
+              - key: credentials
+                path: credentials.json
 
       dnsPolicy: ClusterFirst
       restartPolicy: Always

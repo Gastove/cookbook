@@ -35,9 +35,12 @@ module Static =
         module Html =
             open Giraffe.ViewEngine
 
-            let link url = a [ _href url ] [ str url ]
+            let link url = li [] [ a [ _href url ] [ str url ] ]
 
-            let index links = html [] [ body [] [ div [] links ] ]
+            let index links =
+                html [] [
+                    body [] [ div [] [ ul [] links ] ]
+                ]
 
 
         let uploadAsync (upload: Media.Upload) (logger: ILogger) =
