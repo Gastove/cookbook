@@ -42,6 +42,11 @@ module Static =
 
             let index links =
                 html [] [
+                    head [] [
+                        meta [ _charset "utf-8" ]
+                        meta [ _name "viewport"
+                               _content "width=device-width, initial-scale=1.0" ]
+                    ]
                     body [] [
                         div [] [
                             h3 [] [
