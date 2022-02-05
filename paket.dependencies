@@ -13,7 +13,7 @@ nuget FSharp.Core
 nuget FSharp.Data
 nuget Google.Cloud.Storage.V1
 nuget Microsoft.AspNetCore.All
-nuget Giraffe 5.0.0-rc-6
+nuget Giraffe
 nuget Giraffe.ViewEngine
 nuget Ply
 nuget prometheus-net
