@@ -87,18 +87,18 @@ module Main =
         Log.Logger <- Logging.ConfigureBootstrapLogger()
         let contentRoot = Directory.GetCurrentDirectory()
         let webRoot = Path.Combine(contentRoot, "wwwroot")
-        // Eventually:
 
-        Async.Start <| Static.Sync.runSync (Config.loadConfig())
+        match Static.Sync.runSync (Config.loadConfig ()) with
+        | Ok (syncer) -> syncer |> Async.Start
+        | Error (errorValue) -> Log.Error("Failed to start sync process; error was, {errorValue}", errorValue)
 
         Host
             .CreateDefaultBuilder(args)
             .UseSerilog(Logging.ConfigureRuntimeLogger)
             .ConfigureWebHost(fun host ->
-                host.ConfigureKestrel
-                    (fun kestrelConfig ->
-                        kestrelConfig.ListenAnyIP(Server.Ports.Http)
-                        kestrelConfig.ListenAnyIP(Server.Ports.Metrics))
+                host.ConfigureKestrel (fun kestrelConfig ->
+                    kestrelConfig.ListenAnyIP(Server.Ports.Http)
+                    kestrelConfig.ListenAnyIP(Server.Ports.Metrics))
                 |> ignore)
             .ConfigureWebHostDefaults(fun webHostBuilder ->
                 webHostBuilder

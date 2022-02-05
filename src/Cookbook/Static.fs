@@ -32,6 +32,8 @@ module Static =
 
     module Sync =
 
+        type SyncError = DropboxClientError of string | GCPClientError of string
+
         module Html =
             open Giraffe.ViewEngine
 
@@ -58,7 +60,7 @@ module Static =
                 ]
 
 
-        let uploadAsync (upload: Media.Upload) (logger: ILogger) =
+        let uploadAsync client (upload: Media.Upload) (logger: ILogger) =
             logger.Information(
                 "Uploading file {name} to {bucket}/{prefix}",
                 upload.Media.FileName,
@@ -66,7 +68,7 @@ module Static =
                 upload.Prefix
             )
 
-            GCP.Storage.put upload.Config.StaticAssetsBucket upload.Prefix upload.Media logger
+            GCP.Storage.put client upload.Config.StaticAssetsBucket upload.Prefix upload.Media logger
 
         let createIndex (fileNames: string seq) (cfg: Configuration) =
             fileNames
@@ -78,16 +80,17 @@ module Static =
             |> Html.index
             |> Giraffe.ViewEngine.RenderView.AsBytes.htmlDocument
 
-        let createAndUploadIndex (fileNames: string seq) (cfg: Configuration) (logger: ILogger) =
+        let createAndUploadIndex client (fileNames: string seq) (cfg: Configuration) (logger: ILogger) =
             let index = createIndex fileNames cfg
             let indexStream = new System.IO.MemoryStream(index)
 
             Cookbook.GCP.Media.Create "index.html" indexStream
             |> Result.map (fun media -> Media.Upload.Create media cfg "gifs")
-            |> Result.map (fun upload -> uploadAsync upload logger)
+            |> Result.map (fun upload -> uploadAsync client upload logger)
 
         let synchronizeMedia
             (dbxClient: Dropbox.DbxClient)
+            client
             (mediaDir: string)
             (logger: ILogger)
             (cfg: Configuration)
@@ -114,13 +117,13 @@ module Static =
 
                                 match uploadMaker n stream with
                                 | Ok (upload) ->
-                                    let! url = uploadAsync upload logger
+                                    let! url = uploadAsync client upload logger
                                     logger.Information("Uploaded to {url}", url)
                                 | Error (e) -> logger.Error($"Upload of {n} failed", e)
                             })
                     |> Async.Parallel
 
-                match createAndUploadIndex fileNames cfg logger with
+                match createAndUploadIndex client fileNames cfg logger with
                 | Ok (indexUpload) ->
                     let! indexResult = indexUpload
                     logger.Information("Uploaded index to {indexResult}", indexResult)
@@ -129,11 +132,11 @@ module Static =
                 return ()
             }
 
-        let syncGifs (dbxClient: Dropbox.DbxClient) (logger: ILogger) (cfg: Configuration) =
+        let syncGifs (dbxClient: Dropbox.DbxClient) gcpClient (logger: ILogger) (cfg: Configuration) =
             let uploadMaker =
                 Media.buildUploadMaker cfg Constants.StaticAssetsGifsPrefix
 
-            synchronizeMedia dbxClient Constants.GifsDir logger cfg uploadMaker
+            synchronizeMedia dbxClient gcpClient Constants.GifsDir logger cfg uploadMaker
 
         // let syncImgs (dbxClient: Dropbox.DbxClient) (logger: ILogger) (cfg: Configuration) =
         //     let uploadMaker =
@@ -144,9 +147,12 @@ module Static =
         let runSync cfg =
             let logger = Log.Logger
 
-            match Dropbox.Auth.createDbxClient () with
-            | Some dbxClient ->
-                logger.Debug("Client loaded")
+            let maybeDbxClient = Dropbox.Auth.createDbxClient ()
+            let maybeGcpClient = Cookbook.GCP.Storage.getClient ()
+
+            match maybeDbxClient, maybeGcpClient with
+            | Some dbxClient, Ok gcpClient ->
+                logger.Debug("Clients loaded")
 
                 let sleepMilis =
                     Constants.StaticAssetsResyncIntervalSeconds * 1000
@@ -155,11 +161,12 @@ module Static =
                     while true do
                         logger.Debug("Syncing static assets...")
 
-                        do! syncGifs dbxClient logger cfg
+                        do! syncGifs dbxClient gcpClient logger cfg
                         // do! syncImgs dbxClient logger cfg
 
                         logger.Debug($"Waiting {sleepMilis} millis to sync again...")
 
                         do! Async.Sleep sleepMilis
-                }
-            | None -> async { () }
+                } |> Ok
+            | None, _ -> "Failed to load Dropbox API key" |> DropboxClientError |> Error
+            | _, Error(gcpError) -> gcpError.Message |> GCPClientError |> Error

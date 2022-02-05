@@ -148,7 +148,7 @@ module Handlers =
 
                     | None ->
                         ctx.SetStatusCode 500
-                        return Some ctx
+                        return! ctx.WriteTextAsync "There was a problem loading this site, please check back later"
                 })
 
     let feedHandler () =
