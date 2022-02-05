@@ -7,11 +7,10 @@ type Media =
 
     static member Create (fileName: string) (body: System.IO.Stream) =
         Media.ComputeMediaType fileName
-        |> Result.map
-            (fun mediaType ->
-                { MediaType = mediaType
-                  FileName = fileName
-                  Body = body })
+        |> Result.map (fun mediaType ->
+            { MediaType = mediaType
+              FileName = fileName
+              Body = body })
 
     static member ComputeMediaType(fileName: string) =
         let (|Png|_|) (fileName: string) =
@@ -64,18 +63,27 @@ module Storage =
 
     open Serilog
 
-    let getClient () = StorageClient.Create()
+    let getClient () =
+        try
+            StorageClient.Create() |> Ok
+        with
+        | exn -> Error(exn)
 
-    let put bucket prefix (file: Media) (logger: ILogger) =
+    let put (client: StorageClient) bucket prefix (file: Media) (logger: ILogger) =
         let acl =
             Some(PredefinedObjectAcl.PublicRead)
             |> Option.toNullable
 
         let progress =
-            System.Progress<IUploadProgress>(fun p -> logger.Information("Uploading {FileName}; wrote {BytesSent}, status: {Status}", file.FileName, p.BytesSent, p.Status))
+            System.Progress<IUploadProgress> (fun p ->
+                logger.Information(
+                    "Uploading {FileName}; wrote {BytesSent}, status: {Status}",
+                    file.FileName,
+                    p.BytesSent,
+                    p.Status
+                ))
 
         let options = UploadObjectOptions(PredefinedAcl = acl)
-        let client = getClient ()
 
         let objectName = $"{prefix}/{file.FileName}"
 
