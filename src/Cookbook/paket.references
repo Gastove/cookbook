@@ -1,12 +1,13 @@
 Destructurama.FSharp
 Dropbox.Api
-Serilog
-Serilog.Sinks.Console
-Serilog.AspNetCore
-Serilog.Sinks.GoogleCloudLogging
 FSharp.Core
 Giraffe
 Giraffe.ViewEngine
+Markdig
 Ply
+Serilog
+Serilog.AspNetCore
+Serilog.Sinks.Console
+Serilog.Sinks.GoogleCloudLogging
 prometheus-net
 prometheus-net.AspNetCore

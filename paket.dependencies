@@ -4,6 +4,7 @@ source https://nuget.org/api/v2
 storage:none
 
 nuget Destructurama.FSharp
+nuget Markdig
 nuget Serilog
 nuget Serilog.Sinks.Console
 nuget Serilog.AspNetCore
