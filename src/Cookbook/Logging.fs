@@ -25,11 +25,15 @@ module Logging =
         =
         let cfg =
             configuration
-                .Destructure.FSharpTypes()
+                .Destructure
+                .FSharpTypes()
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
 
         if context.HostingEnvironment.IsProduction() then
-            cfg.WriteTo.GoogleCloudLogging(gclConfig)
-            |> ignore
+            try
+                cfg.WriteTo.GoogleCloudLogging(gclConfig)
+                |> ignore
+            with
+            | exn -> Log.Error("Failed to configure Google Cloud Logging: {error}", exn.Message)
