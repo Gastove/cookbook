@@ -39,10 +39,8 @@ module Files =
         folder
         |> Files.ListFolderArg
         |> dbxClient.Files.ListFolderAsync
-        |> Async.AwaitTask
 
     let loadFileAsync folder file (dbxClient : DropboxClient) =
         [|folder; file|]
         |> IO.Path.Combine
         |> dbxClient.Files.DownloadAsync
-        |> Async.AwaitTask

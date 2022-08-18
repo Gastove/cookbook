@@ -16,6 +16,5 @@ nuget Google.Cloud.Storage.V1
 nuget Microsoft.AspNetCore.All
 nuget Giraffe
 nuget Giraffe.ViewEngine
-nuget Ply
 nuget prometheus-net
 nuget prometheus-net.AspNetCore

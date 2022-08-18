@@ -96,7 +96,7 @@ module Static =
             (cfg: Configuration)
             (uploadMaker: Media.UploadMaker)
             =
-            async {
+            task {
                 let! fileList = Dropbox.Files.listFilesAsync mediaDir dbxClient
 
                 let fileNames =
@@ -107,7 +107,7 @@ module Static =
                 let! _ =
                     fileNames
                     |> Seq.map (fun n ->
-                        async {
+                        task {
                             use! download = Dropbox.Files.loadFileAsync mediaDir n dbxClient
 
                             let! stream =
@@ -120,6 +120,7 @@ module Static =
                                 logger.Information("Uploaded to {url}", url)
                             | Error (e) -> logger.Error($"Upload of {n} failed", e)
                         })
+                    |> Seq.map Async.AwaitTask
                     |> Async.Parallel
 
                 match createAndUploadIndex client fileNames cfg logger with
@@ -156,7 +157,7 @@ module Static =
                 let sleepMilis =
                     Constants.StaticAssetsResyncIntervalSeconds * 1000
 
-                async {
+                task {
                     while true do
                         logger.Debug("Syncing static assets...")
 

@@ -22,14 +22,14 @@ module Server =
 
     let webApp =
         choose [ GET
-                 >=> choose [ route "/" >=> Handlers.cachingIndexHandler ()
-
+                 >=> choose [ route "/" >=> Handlers.indexHandler ()
+                              route "/blog"
+                              >=> Handlers.cachingBlogIndexHandler ()
                               routef "/blog/%s" Handlers.cachingBlogPostHandler
 
                               route "/feed/atom"
                               >=> Handlers.cachingFeedHandler () ]
                  setStatusCode 404 >=> text "Not Found" ]
-
 
     let errorHandler (ex: Exception) (logger: ILogger) =
         logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
@@ -50,6 +50,7 @@ module Server =
         services.AddGiraffe() |> ignore
         services.AddResponseCaching() |> ignore
         services.AddHealthChecks() |> ignore
+
 
     let configureApp (app: IApplicationBuilder) =
         let env =
@@ -89,7 +90,7 @@ module Main =
         let webRoot = Path.Combine(contentRoot, "wwwroot")
 
         match Static.Sync.runSync (Config.loadConfig ()) with
-        | Ok (syncer) -> syncer |> Async.Start
+        | Ok (syncer) -> syncer.Start()
         | Error (errorValue) -> Log.Error("Failed to start sync process; error was, {errorValue}", errorValue)
 
         Host

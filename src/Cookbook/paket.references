@@ -4,7 +4,6 @@ FSharp.Core
 Giraffe
 Giraffe.ViewEngine
 Markdig
-Ply
 Serilog
 Serilog.AspNetCore
 Serilog.Sinks.Console
