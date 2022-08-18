@@ -8,7 +8,7 @@ module Logging =
     open Microsoft.Extensions.Hosting
 
     let gclConfig =
-        GoogleCloudLoggingSinkOptions(ProjectId = "kubernation", UseJsonOutput = true, ServiceName = "cookbook")
+        GoogleCloudLoggingSinkOptions(ProjectId = "kubernation", ServiceName = "cookbook")
 
     let ConfigureBootstrapLogger () =
         LoggerConfiguration()
