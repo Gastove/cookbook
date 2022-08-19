@@ -16,19 +16,21 @@ module Server =
 
     open Microsoft.Extensions.Logging
 
+    // TODO[gastove|2022-08-18] Gotta re-do this for Cloud Run.
     module Ports =
         let Http = 5000
         let Metrics = 5005
 
     let webApp =
         choose [ GET
-                 >=> choose [ route "/" >=> Handlers.indexHandler ()
+                 >=> choose [ route "/feed/atom"
+                              >=> Handlers.cachingFeedHandler ()
                               route "/blog"
                               >=> Handlers.cachingBlogIndexHandler ()
                               routef "/blog/%s" Handlers.cachingBlogPostHandler
 
-                              route "/feed/atom"
-                              >=> Handlers.cachingFeedHandler () ]
+                              route "/" >=> Handlers.pageHandler "home"
+                              routef "/%s" Handlers.pageHandler ]
                  setStatusCode 404 >=> text "Not Found" ]
 
     let errorHandler (ex: Exception) (logger: ILogger) =

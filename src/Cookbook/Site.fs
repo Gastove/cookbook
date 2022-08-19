@@ -96,29 +96,6 @@ module Templating =
               ]
           ] ]
 
-    let index =
-        let maybePage =
-            Dropbox.Auth.createDbxClient ()
-            |> Option.map (fun client -> HomePage.tryLoadContent "/pages" "home.markdown" client)
-            |> Option.map (fun await ->
-                await
-                |> System.Threading.Tasks.ValueTask<string option>)
-            |> Option.map (fun vt ->
-                vt.Result
-                |> Option.defaultValue "It's fucked, boss")
-            |> Option.defaultValue "We were never in the game"
-
-        [ div [ _class "post" ] [
-              h2 [ _class "post-title" ] [
-                  str "$HOME/"
-              ]
-              hr []
-              div [] [
-                  p [] [ str "Hello and welcome!" ]
-                  p [] [ rawText maybePage]
-              ]
-          ] ]
-
     let page pageTitle footerExtras pageBody =
         html [] [
             header pageTitle
@@ -146,9 +123,31 @@ module Handlers =
     // Caching TTL
     let oneHour = System.TimeSpan.FromHours(1)
 
-    let indexHandler () =
-        Templating.page "gastove.com" List.empty Templating.index
-        |> htmlView
+    let pageHandler (slug: string) =
+        let cfg = Config.loadConfig ()
+
+        handleContext (fun ctx ->
+            task {
+                match Dropbox.Auth.createDbxClient () with
+                | Some client ->
+                    use client = client
+
+                    let! maybeContents = HomePage.tryLoadContent cfg.PagesDir $"{slug}.markdown" client
+
+                    let contents =
+                        maybeContents
+                        |> Option.defaultValue "We were never in the game"
+
+                    let page =
+                        Templating.page "gastove.com" List.empty [ (Giraffe.ViewEngine.HtmlElements.rawText contents) ]
+
+                    return! ctx.WriteHtmlViewAsync page
+
+                | None ->
+                    ctx.SetStatusCode 500
+                    return Some ctx
+
+            })
 
     let blogIndexHandler () =
         handleContext (fun ctx ->
@@ -200,7 +199,6 @@ module Handlers =
             })
 
     let blogPostHandler (slug: string) =
-
         handleContext (fun ctx ->
             task {
                 let cfg = Config.loadConfig ()
