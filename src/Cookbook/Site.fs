@@ -44,7 +44,7 @@ module Templating =
               a [ _href "/feed/atom" ] [ str "Atom" ]
               br []
               br []
-              str "© Ross Donaldson" ]
+              str "© Ross M. Donaldson, 2022" ]
 
         footer [] (List.append baseFooter extra)
 
@@ -96,6 +96,29 @@ module Templating =
               ]
           ] ]
 
+    let index =
+        let maybePage =
+            Dropbox.Auth.createDbxClient ()
+            |> Option.map (fun client -> HomePage.tryLoadContent "/pages" "home.markdown" client)
+            |> Option.map (fun await ->
+                await
+                |> System.Threading.Tasks.ValueTask<string option>)
+            |> Option.map (fun vt ->
+                vt.Result
+                |> Option.defaultValue "It's fucked, boss")
+            |> Option.defaultValue "We were never in the game"
+
+        [ div [ _class "post" ] [
+              h2 [ _class "post-title" ] [
+                  str "$HOME/"
+              ]
+              hr []
+              div [] [
+                  p [] [ str "Hello and welcome!" ]
+                  p [] [ rawText maybePage]
+              ]
+          ] ]
+
     let page pageTitle footerExtras pageBody =
         html [] [
             header pageTitle
@@ -106,8 +129,6 @@ module Templating =
         ]
 
 module Handlers =
-
-    open FSharp.Control.Tasks
 
     open Giraffe
     open Prometheus
@@ -123,96 +144,97 @@ module Handlers =
         )
 
     // Caching TTL
-    let oneHour = 3600
+    let oneHour = System.TimeSpan.FromHours(1)
 
     let indexHandler () =
-        handleContext
-            (fun ctx ->
-                task {
-                    let cfg = Config.loadConfig ()
-                    let blogTitle = "blog.gastove.com"
+        Templating.page "gastove.com" List.empty Templating.index
+        |> htmlView
 
-                    match Dropbox.Auth.createDbxClient () with
-                    | Some client ->
-                        use client = client
-                        let! posts = Blog.loadAllPosts cfg.BlogDir client
+    let blogIndexHandler () =
+        handleContext (fun ctx ->
+            task {
+                let cfg = Config.loadConfig ()
+                let blogTitle = "gastove.com/blog"
 
-                        let summaries =
-                            posts |> (Templating.postSummaries blogTitle)
+                match Dropbox.Auth.createDbxClient () with
+                | Some client ->
+                    use client = client
+                    let! posts = Blog.loadAllPosts cfg.BlogDir client
 
-                        let view =
-                            Templating.page blogTitle List.empty summaries
+                    let summaries =
+                        posts |> (Templating.postSummaries blogTitle)
 
-                        IndexHits.Inc()
-                        return! ctx.WriteHtmlViewAsync view
+                    let view =
+                        Templating.page blogTitle List.empty summaries
 
-                    | None ->
-                        ctx.SetStatusCode 500
-                        return! ctx.WriteTextAsync "There was a problem loading this site, please check back later"
-                })
+                    IndexHits.Inc()
+                    return! ctx.WriteHtmlViewAsync view
+
+                | None ->
+                    ctx.SetStatusCode 500
+                    return! ctx.WriteTextAsync "There was a problem loading this site, please check back later"
+            })
 
     let feedHandler () =
         let cfg = Config.loadConfig ()
 
-        handleContext
-            (fun ctx ->
-                task {
-                    match Dropbox.Auth.createDbxClient () with
-                    | Some client ->
-                        use client = client
+        handleContext (fun ctx ->
+            task {
+                match Dropbox.Auth.createDbxClient () with
+                | Some client ->
+                    use client = client
 
-                        let! posts = Blog.loadAllPosts cfg.BlogDir client
+                    let! posts = Blog.loadAllPosts cfg.BlogDir client
 
-                        let feed = Feed.formatFeed <| List.ofArray posts
+                    let feed = Feed.formatFeed <| List.ofArray posts
 
-                        ctx.SetContentType "application/atom+xml"
+                    ctx.SetContentType "application/atom+xml"
 
-                        return!
-                            ctx.WriteBytesAsync
-                            <| System.Text.Encoding.UTF8.GetBytes(feed.OuterXml)
+                    return!
+                        ctx.WriteBytesAsync
+                        <| System.Text.Encoding.UTF8.GetBytes(feed.OuterXml)
 
-                    | None ->
-                        ctx.SetStatusCode 500
-                        return Some ctx
-                })
+                | None ->
+                    ctx.SetStatusCode 500
+                    return Some ctx
+            })
 
     let blogPostHandler (slug: string) =
 
-        handleContext
-            (fun ctx ->
-                task {
-                    let cfg = Config.loadConfig ()
-                    let blogTitle = "blog.gastove.com"
-                    let postFile = $"{slug}.html"
+        handleContext (fun ctx ->
+            task {
+                let cfg = Config.loadConfig ()
+                let blogTitle = "blog.gastove.com"
+                let postFile = $"{slug}.html"
 
-                    match Dropbox.Auth.createDbxClient () with
-                    | Some client ->
-                        use client = client
+                match Dropbox.Auth.createDbxClient () with
+                | Some client ->
+                    use client = client
 
-                        let! post = Blog.loadPost cfg.BlogDir postFile client
+                    let! post = Blog.loadPost cfg.BlogDir postFile client
 
-                        let postPage = post |> Templating.postView
+                    let postPage = post |> Templating.postView
 
-                        let view =
-                            Templating.page blogTitle Templating.postFooterExtras postPage
+                    let view =
+                        Templating.page blogTitle Templating.postFooterExtras postPage
 
-                        PostHits.Labels([| slug |]).Inc()
+                    PostHits.Labels([| slug |]).Inc()
 
-                        return! ctx.WriteHtmlViewAsync view
+                    return! ctx.WriteHtmlViewAsync view
 
-                    | None ->
-                        ctx.SetStatusCode 500
-                        return Some ctx
-                })
+                | None ->
+                    ctx.SetStatusCode 500
+                    return Some ctx
+            })
 
-    let cachingIndexHandler () =
-        publicResponseCaching oneHour None
-        >=> indexHandler ()
+    let cachingBlogIndexHandler () =
+        publicResponseCaching (oneHour.TotalSeconds |> int) None
+        >=> blogIndexHandler ()
 
     let cachingFeedHandler () =
-        publicResponseCaching oneHour None
+        publicResponseCaching (oneHour.TotalSeconds |> int) None
         >=> feedHandler ()
 
     let cachingBlogPostHandler blogPost =
-        publicResponseCaching oneHour None
+        publicResponseCaching (oneHour.TotalSeconds |> int) None
         >=> (blogPostHandler blogPost)

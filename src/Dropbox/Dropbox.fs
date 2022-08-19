@@ -11,23 +11,26 @@ module Auth =
     [<Literal>]
     let DbxKeyEnvVar = "DBX_ACCESS_TOKEN"
 
-    let (|SomeString|NoneString|) (s : string) =
-        if String.IsNullOrWhiteSpace(s) then NoneString
-        else SomeString
+    let (|SomeString|NoneString|) (s: string) =
+        if String.IsNullOrWhiteSpace(s) then
+            NoneString
+        else
+            SomeString
 
-    let loadDbxKey() =
-        let got = Environment.GetEnvironmentVariable(DbxKeyEnvVar)
+    let loadDbxKey () =
+        let got =
+            Environment.GetEnvironmentVariable(DbxKeyEnvVar)
+
         match got with
         | SomeString -> Some got
         | NoneString -> None
 
-    let createDbxClientFromKey (key : string option) =
+    let createDbxClientFromKey (key: string option) =
         match key with
-        | Some k -> Some (new DropboxClient(k))
+        | Some k -> Some(new DropboxClient(k))
         | None -> None
 
-    let createDbxClient () =
-        loadDbxKey() |> createDbxClientFromKey
+    let createDbxClient () = loadDbxKey () |> createDbxClientFromKey
 
 
 module Files =
@@ -35,12 +38,22 @@ module Files =
     open System
     open Dropbox.Api
 
-    let listFilesAsync folder (dbxClient : DropboxClient) =
+    let listFilesAsync folder (dbxClient: DropboxClient) =
         folder
         |> Files.ListFolderArg
         |> dbxClient.Files.ListFolderAsync
 
-    let loadFileAsync folder file (dbxClient : DropboxClient) =
-        [|folder; file|]
+    let fileExists folder file (dbxClient: DropboxClient) =
+        task {
+            let! fileMeta =
+                [| folder; file |]
+                |> IO.Path.Combine
+                |> dbxClient.Files.GetMetadataAsync
+
+            return fileMeta.IsFile
+        }
+
+    let loadFileAsync folder file (dbxClient: DropboxClient) =
+        [| folder; file |]
         |> IO.Path.Combine
         |> dbxClient.Files.DownloadAsync
