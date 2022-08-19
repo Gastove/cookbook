@@ -100,3 +100,12 @@ module Storage =
 
             return obj.MediaLink
         }
+
+    // let get (client: StorageClient) bucket prefix (file: Media) (logger: ILogger) =
+    //     task {
+    //         try
+    //             let! got = client.GetObjectAsync(bucket, prefix)
+
+
+
+    //     }
