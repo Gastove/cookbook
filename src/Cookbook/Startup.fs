@@ -29,8 +29,8 @@ module Server =
                               >=> Handlers.cachingBlogIndexHandler ()
                               routef "/blog/%s" Handlers.cachingBlogPostHandler
 
-                              route "/" >=> Handlers.pageHandler "home"
-                              routef "/%s" Handlers.pageHandler ]
+                              route "/" >=> Handlers.cachingPageHandler "welcome"
+                              routef "/%s" Handlers.cachingPageHandler ]
                  setStatusCode 404 >=> text "Not Found" ]
 
     let errorHandler (ex: Exception) (logger: ILogger) =

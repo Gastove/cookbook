@@ -4,6 +4,13 @@ module Templating =
 
     open Giraffe.ViewEngine
 
+    let LinkedHome = a [ _href "/" ] [ str "$HOME/" ]
+    let LinkedBlog = a [ _href "/blog" ] [ str "blog" ]
+
+    let linkedTitle links title =
+        [ h1 [ _class "page-title" ] ([str "> "] @ links @ [ str title ])
+          hr [] ]
+
     let header pageTitle =
         head [] [
             meta [ _charset "utf-8" ]
@@ -28,10 +35,6 @@ module Templating =
 
         let baseFooter =
             [ a [ _href "/" ] [ str "Home" ]
-              sep
-              a [ _href "https://gastove.com" ] [
-                  str "gastove.com"
-              ]
               sep
               a [ _href "https://gitlab.com/gastove" ] [
                   str "Gitlab"
@@ -58,11 +61,14 @@ module Templating =
             str $"{blogPost.Meta.Summary}"
         ]
 
-    let postSummaries blogTitle (posts: BlogPost array) =
-        let hdr =
-            h1 [ _class "blog-title" ] [
-                encodedText $"> {blogTitle}_"
-            ]
+    let pageTitle title =
+        [ h1 [ _class "page-title" ] [
+            encodedText $"> {title}"
+          ]
+          hr [] ]
+
+    let postSummaries (posts: BlogPost array) =
+        let hdr = linkedTitle [LinkedHome; LinkedBlog] "/index"
 
         let summaries =
             posts
@@ -70,7 +76,7 @@ module Templating =
             |> Array.map postSummary
             |> List.ofArray
 
-        [ hdr; hr [] ] @ summaries @ [ hr [] ]
+        hdr @ summaries @ [ hr [] ]
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
@@ -81,7 +87,8 @@ module Templating =
         [ div [ _class "post" ] [
             h2 [ _class "post-title" ] [
                 a [ _href "/" ] [ str "> $HOME" ]
-                str $"/blog/{blogPost.Title}"
+                a [ _href "/blog" ] [ str "/blog" ]
+                str $"/{blogPost.Title}"
             ]
             hr []
             div [] [ rawText blogPost.Body ]
@@ -131,15 +138,22 @@ module Handlers =
                 match Dropbox.Auth.createDbxClient () with
                 | Some client ->
                     use client = client
-
+                    printfn $"Loading {slug}, apparently"
                     let! maybeContents = HomePage.tryLoadContent cfg.PagesDir $"{slug}.markdown" client
 
                     let contents =
                         maybeContents
                         |> Option.defaultValue "We were never in the game"
 
+                    let header =
+                        Templating.linkedTitle [Templating.LinkedHome] $"{slug}.md"
+
                     let page =
-                        Templating.page "gastove.com" List.empty [ (Giraffe.ViewEngine.HtmlElements.rawText contents) ]
+                        Templating.page
+                            "gastove.com"
+                            List.empty
+                            (header
+                             @ [ (Giraffe.ViewEngine.HtmlElements.rawText contents) ])
 
                     return! ctx.WriteHtmlViewAsync page
 
@@ -161,7 +175,7 @@ module Handlers =
                     let! posts = Blog.loadAllPosts cfg.BlogDir client
 
                     let summaries =
-                        posts |> (Templating.postSummaries blogTitle)
+                        posts |> Templating.postSummaries
 
                     let view =
                         Templating.page blogTitle List.empty summaries
@@ -236,3 +250,7 @@ module Handlers =
     let cachingBlogPostHandler blogPost =
         publicResponseCaching (oneHour.TotalSeconds |> int) None
         >=> (blogPostHandler blogPost)
+
+    let cachingPageHandler slug =
+        publicResponseCaching (oneHour.TotalSeconds |> int) None
+        >=> (pageHandler slug)
