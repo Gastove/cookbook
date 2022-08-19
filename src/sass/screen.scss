@@ -40,12 +40,12 @@ body {
             margin-bottom: 0.5em;
         }
 
-        .blog-title, .post-title {
+        .page-title, .post-title {
             @extend %heading;
             font: normal 100% 'Roboto Mono', monospace;
         }
 
-        .blog-title {
+        .page-title {
             font-size: 1.75em;
         }
 

@@ -2,7 +2,6 @@
 
 open FSharp.Data
 
-
 type PostMeta =
     XmlProvider<"""
     <POST-META>
@@ -56,10 +55,10 @@ module Xml =
           Meta = meta }
 
     let readPostAndParseAsync (stream: IO.Stream) =
-        async {
+        task {
             use reader = new IO.StreamReader(stream)
 
-            let! contents = reader.ReadToEndAsync() |> Async.AwaitTask
+            let! contents = reader.ReadToEndAsync()
 
             return separatePostAndMeta contents
         }

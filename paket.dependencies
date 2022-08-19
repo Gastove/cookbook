@@ -4,6 +4,7 @@ source https://nuget.org/api/v2
 storage:none
 
 nuget Destructurama.FSharp
+nuget Markdig
 nuget Serilog
 nuget Serilog.Sinks.Console
 nuget Serilog.AspNetCore
@@ -15,6 +16,5 @@ nuget Google.Cloud.Storage.V1
 nuget Microsoft.AspNetCore.All
 nuget Giraffe
 nuget Giraffe.ViewEngine
-nuget Ply
 nuget prometheus-net
 nuget prometheus-net.AspNetCore

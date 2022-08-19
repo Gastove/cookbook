@@ -87,7 +87,7 @@ module Storage =
 
         let objectName = $"{prefix}/{file.FileName}"
 
-        async {
+        task {
             let! obj =
                 client.UploadObjectAsync(
                     bucket = bucket,
@@ -97,7 +97,6 @@ module Storage =
                     options = options,
                     progress = progress
                 )
-                |> Async.AwaitTask
 
             return obj.MediaLink
         }

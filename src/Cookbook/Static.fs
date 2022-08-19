@@ -24,15 +24,16 @@ module Static =
         let buildUploadMaker cfg prefix : UploadMaker =
             fun name stream ->
                 Media.Create name stream
-                |> Result.map
-                    (fun media ->
-                        { Media = media
-                          Config = cfg
-                          Prefix = prefix })
+                |> Result.map (fun media ->
+                    { Media = media
+                      Config = cfg
+                      Prefix = prefix })
 
     module Sync =
 
-        type SyncError = DropboxClientError of string | GCPClientError of string
+        type SyncError =
+            | DropboxClientError of string
+            | GCPClientError of string
 
         module Html =
             open Giraffe.ViewEngine
@@ -72,10 +73,9 @@ module Static =
 
         let createIndex (fileNames: string seq) (cfg: Configuration) =
             fileNames
-            |> Seq.map
-                (fun fileName ->
-                    $"http://{cfg.StaticAssetsBucket}/gifs/{fileName}"
-                    |> Html.link fileName)
+            |> Seq.map (fun fileName ->
+                $"http://{cfg.StaticAssetsBucket}/gifs/{fileName}"
+                |> Html.link fileName)
             |> Seq.toList
             |> Html.index
             |> Giraffe.ViewEngine.RenderView.AsBytes.htmlDocument
@@ -96,7 +96,7 @@ module Static =
             (cfg: Configuration)
             (uploadMaker: Media.UploadMaker)
             =
-            async {
+            task {
                 let! fileList = Dropbox.Files.listFilesAsync mediaDir dbxClient
 
                 let fileNames =
@@ -106,21 +106,21 @@ module Static =
 
                 let! _ =
                     fileNames
-                    |> Seq.map
-                        (fun n ->
-                            async {
-                                use! download = Dropbox.Files.loadFileAsync mediaDir n dbxClient
+                    |> Seq.map (fun n ->
+                        task {
+                            use! download = Dropbox.Files.loadFileAsync mediaDir n dbxClient
 
-                                let! stream =
-                                    download.GetContentAsStreamAsync()
-                                    |> Async.AwaitTask
+                            let! stream =
+                                download.GetContentAsStreamAsync()
+                                |> Async.AwaitTask
 
-                                match uploadMaker n stream with
-                                | Ok (upload) ->
-                                    let! url = uploadAsync client upload logger
-                                    logger.Information("Uploaded to {url}", url)
-                                | Error (e) -> logger.Error($"Upload of {n} failed", e)
-                            })
+                            match uploadMaker n stream with
+                            | Ok (upload) ->
+                                let! url = uploadAsync client upload logger
+                                logger.Information("Uploaded to {url}", url)
+                            | Error (e) -> logger.Error($"Upload of {n} failed", e)
+                        })
+                    |> Seq.map Async.AwaitTask
                     |> Async.Parallel
 
                 match createAndUploadIndex client fileNames cfg logger with
@@ -157,7 +157,7 @@ module Static =
                 let sleepMilis =
                     Constants.StaticAssetsResyncIntervalSeconds * 1000
 
-                async {
+                task {
                     while true do
                         logger.Debug("Syncing static assets...")
 
@@ -167,6 +167,29 @@ module Static =
                         logger.Debug($"Waiting {sleepMilis} millis to sync again...")
 
                         do! Async.Sleep sleepMilis
-                } |> Ok
-            | None, _ -> "Failed to load Dropbox API key" |> DropboxClientError |> Error
-            | _, Error(gcpError) -> gcpError.Message |> GCPClientError |> Error
+                }
+                |> Ok
+            | None, _ ->
+                "Failed to load Dropbox API key"
+                |> DropboxClientError
+                |> Error
+            | _, Error (gcpError) -> gcpError.Message |> GCPClientError |> Error
+
+    module Markdown =
+
+        open System
+
+        let parse (content: string) = Markdig.Markdown.ToHtml(content)
+
+        let loadDocument (path: string) =
+            if IO.File.Exists(path) then
+                task { return! IO.File.ReadAllTextAsync(path) }
+                |> Ok
+            else
+                sprintf $"Path {path} does not exist" |> Error
+
+        let loadDocumentFromResources (path: string) =
+            let root = IO.Directory.GetCurrentDirectory()
+            let resourcesDir = IO.Path.Combine(root, "resources", "pages", path)
+
+            loadDocument resourcesDir

@@ -16,20 +16,22 @@ module Server =
 
     open Microsoft.Extensions.Logging
 
+    // TODO[gastove|2022-08-18] Gotta re-do this for Cloud Run.
     module Ports =
         let Http = 5000
         let Metrics = 5005
 
     let webApp =
         choose [ GET
-                 >=> choose [ route "/" >=> Handlers.cachingIndexHandler ()
-
+                 >=> choose [ route "/feed/atom"
+                              >=> Handlers.cachingFeedHandler ()
+                              route "/blog"
+                              >=> Handlers.cachingBlogIndexHandler ()
                               routef "/blog/%s" Handlers.cachingBlogPostHandler
 
-                              route "/feed/atom"
-                              >=> Handlers.cachingFeedHandler () ]
+                              route "/" >=> Handlers.cachingPageHandler "welcome"
+                              routef "/%s" Handlers.cachingPageHandler ]
                  setStatusCode 404 >=> text "Not Found" ]
-
 
     let errorHandler (ex: Exception) (logger: ILogger) =
         logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
@@ -50,6 +52,7 @@ module Server =
         services.AddGiraffe() |> ignore
         services.AddResponseCaching() |> ignore
         services.AddHealthChecks() |> ignore
+
 
     let configureApp (app: IApplicationBuilder) =
         let env =
@@ -89,7 +92,7 @@ module Main =
         let webRoot = Path.Combine(contentRoot, "wwwroot")
 
         match Static.Sync.runSync (Config.loadConfig ()) with
-        | Ok (syncer) -> syncer |> Async.Start
+        | Ok (syncer) -> syncer.Start()
         | Error (errorValue) -> Log.Error("Failed to start sync process; error was, {errorValue}", errorValue)
 
         Host

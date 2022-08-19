@@ -10,6 +10,7 @@
     <ItemGroup>
         <Compile Include="Logging.fs" />
         <Compile Include="Blog.fs" />
+        <Compile Include="HomePage.fs"/>
         <Compile Include="Config.fs" />
         <Compile Include="Static.fs" />
         <Compile Include="Site.fs" />
