@@ -58,54 +58,103 @@ type Media =
 
 module Storage =
 
-    open Google.Cloud.Storage.V1
+    open System
+    open System.Threading
+    open System.Threading.Tasks
+
+    open Google.Cloud.Storage
     open Google.Apis.Upload
 
     open Serilog
 
-    let getClient () =
-        try
-            StorageClient.Create() |> Ok
-        with
-        | exn -> Error(exn)
-
-    let put (client: StorageClient) bucket prefix (file: Media) (logger: ILogger) =
-        let acl =
-            Some(PredefinedObjectAcl.PublicRead)
-            |> Option.toNullable
-
-        let progress =
-            System.Progress<IUploadProgress> (fun p ->
-                logger.Information(
-                    "Uploading {FileName}; wrote {BytesSent}, status: {Status}",
-                    file.FileName,
-                    p.BytesSent,
-                    p.Status
-                ))
-
-        let options = UploadObjectOptions(PredefinedAcl = acl)
-
-        let objectName = $"{prefix}/{file.FileName}"
-
-        task {
-            let! obj =
-                client.UploadObjectAsync(
-                    bucket = bucket,
-                    objectName = objectName,
-                    contentType = file.MediaType,
-                    source = file.Body,
-                    options = options,
-                    progress = progress
-                )
-
-            return obj.MediaLink
-        }
-
-    // let get (client: StorageClient) bucket prefix (file: Media) (logger: ILogger) =
-    //     task {
-    //         try
-    //             let! got = client.GetObjectAsync(bucket, prefix)
+    type IStorageClient =
+        abstract Get : string -> string -> ILogger -> Task<string>
+        abstract GetStream : string -> string -> ILogger -> Task<IO.Stream>
+        abstract Put : string -> string -> Media -> ILogger -> Task<string>
+        abstract List : string -> string -> ILogger -> Task<string list>
 
 
+    type StorageClient =
+        { Client: V1.StorageClient }
 
-    //     }
+        static member Create client = { Client = client }
+
+        static member TryCreate() =
+            try
+                V1.StorageClient.Create()
+                |> StorageClient.Create
+                |> Ok
+            with
+            | exn -> Error(exn)
+
+        interface IStorageClient with
+            member this.Put bucket prefix (file: Media) (logger: ILogger) =
+                let acl =
+                    Some(V1.PredefinedObjectAcl.PublicRead)
+                    |> Option.toNullable
+
+                let progress =
+                    System.Progress<IUploadProgress> (fun p ->
+                        logger.Information(
+                            "Uploading {FileName}; wrote {BytesSent}, status: {Status}",
+                            file.FileName,
+                            p.BytesSent,
+                            p.Status
+                        ))
+
+                let options =
+                    V1.UploadObjectOptions(PredefinedAcl = acl)
+
+                let objectName = $"{prefix}/{file.FileName}"
+
+                task {
+                    let! obj =
+                        this.Client.UploadObjectAsync(
+                            bucket = bucket,
+                            objectName = objectName,
+                            contentType = file.MediaType,
+                            source = file.Body,
+                            options = options,
+                            progress = progress
+                        )
+
+                    return obj.MediaLink
+                }
+
+            member this.Get (bucket: string) (path: string) (logger: ILogger) : Task<string> =
+                task {
+                    let! stream = (this :> IStorageClient).GetStream bucket path logger
+                    use reader = new IO.StreamReader(stream)
+                    return! reader.ReadToEndAsync()
+                }
+
+            member this.GetStream (bucket: string) (path: string) (logger: ILogger) : Task<IO.Stream> =
+                task {
+                    let stream =
+                        new IO.BufferedStream(new IO.MemoryStream()) :> IO.Stream
+
+                    let! meta = this.Client.DownloadObjectAsync(bucket, path, stream)
+                    logger.Information("Downloaded {Size} bytes", meta.Size)
+
+                    return stream
+                }
+
+            member this.List (bucket: string) (prefix: string) (logger: ILogger) : Task<string list> =
+                task {
+                    let contents = this.Client.ListObjectsAsync(bucket, prefix)
+                    use tokenSource = new CancellationTokenSource()
+                    let token = tokenSource.Token
+                    let contentsEnumerator = contents.GetAsyncEnumerator(token)
+
+                    let mutable results = List.empty
+                    let mutable keepGoing = true
+
+                    while keepGoing do
+                        let got = contentsEnumerator.Current
+                        logger.Information("Successfully listing from {Bucket}: {Name}", bucket, got.Name)
+                        results <- got.Name :: results
+                        let! shouldKeepGoing = contentsEnumerator.MoveNextAsync()
+                        keepGoing <- shouldKeepGoing
+
+                    return results
+                }
