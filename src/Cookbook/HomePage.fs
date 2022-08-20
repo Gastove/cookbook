@@ -2,31 +2,27 @@ namespace Cookbook
 
 module HomePage =
 
-    open System
-
     open Markdig
+    open Serilog
 
     let markdownParser =
         MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
             .Build()
 
-    let tryLoadContent folder slug (client: Dropbox.DbxClient) =
+    let tryLoadContent folder slug (client: GCP.Storage.IStorageClient) (logger: ILogger) =
         task {
 
-            let! exists = Dropbox.Files.fileExists folder slug client
+            let! exists = client.TryExists folder slug
 
-            if exists then
+            // Pull this apart with a match instead of using Result.map. The
+            // match means we can return from each branch, which saves us from
+            // having to sort out a Result<Task<string>, exn>
+            match exists with
+            | Ok (_) ->
 
-                use! postResponse = Dropbox.Files.loadFileAsync folder slug client
+                let! contents = client.Get folder slug logger
 
-                let! stream = postResponse.GetContentAsStreamAsync()
-
-                use reader = new IO.StreamReader(stream)
-
-                let! contents = reader.ReadToEndAsync()
-
-                return Markdown.ToHtml(contents, markdownParser) |> Some
-            else
-                return None
+                return Markdown.ToHtml(contents, markdownParser) |> Ok
+            | Error (exn) -> return exn |> Error
         }
