@@ -72,7 +72,7 @@ module Storage =
         abstract GetStream : string -> string -> ILogger -> Task<IO.Stream>
         abstract Put : string -> string -> Media -> ILogger -> Task<string>
         abstract List : string -> string -> ILogger -> Task<string list>
-
+        abstract TryExists: string -> string -> Task<Result<unit, exn>>
 
     type StorageClient =
         { Client: V1.StorageClient }
@@ -157,4 +157,12 @@ module Storage =
                         keepGoing <- shouldKeepGoing
 
                     return results
+                }
+            member this.TryExists bucket path: Task<Result<unit, exn>> =
+                task {
+                     try
+                         let! _ = this.Client.GetObjectAsync(bucket, path)
+                         return () |> Ok
+                     with
+                     | exn -> return exn |> Error
                 }
