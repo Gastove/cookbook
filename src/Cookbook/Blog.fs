@@ -2,31 +2,22 @@ namespace Cookbook
 
 module Blog =
 
-    let loadPost folder slug (client: Dropbox.DbxClient) =
+    let loadPost folder slug (client: GCP.Storage.IStorageClient) (logger: Serilog.ILogger) =
         task {
-            use! postResponse = Dropbox.Files.loadFileAsync folder slug client
-
-            let! stream = postResponse.GetContentAsStreamAsync()
+            let! stream = client.GetStream folder slug logger
 
             return Xml.readPostAndParse stream
         }
 
-    let loadAllPosts folder (client: Dropbox.DbxClient) =
+    let loadAllPosts bucket subPath (client: GCP.Storage.IStorageClient) (logger: Serilog.ILogger) =
         task {
-            let! files = Dropbox.Files.listFilesAsync folder client
-
-            let fileNames =
-                files.Entries
-                |> Seq.filter (fun (entry: Dropbox.Api.Files.Metadata) -> entry.IsFile)
-                |> Seq.map (fun entry -> entry.Name)
-                |> Seq.toList
+            let! files = client.List bucket subPath logger
 
             return!
-                fileNames
-                |> List.map (fun n ->
+                files
+                |> List.map (fun fileName ->
                     task {
-                        let! file = Dropbox.Files.loadFileAsync folder n client
-                        let! stream = file.GetContentAsStreamAsync()
+                        let! stream = client.GetStream bucket fileName logger
 
                         return Xml.readPostAndParse stream
                     })

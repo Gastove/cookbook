@@ -31,9 +31,7 @@ module Static =
 
     module Sync =
 
-        type SyncError =
-            | DropboxClientError of string
-            | GCPClientError of string
+        type SyncError = GCPClientError of string
 
         module Html =
             open Giraffe.ViewEngine
@@ -61,7 +59,7 @@ module Static =
                 ]
 
 
-        let uploadAsync client (upload: Media.Upload) (logger: ILogger) =
+        let uploadAsync (client: GCP.Storage.IStorageClient) (upload: Media.Upload) (logger: ILogger) =
             logger.Information(
                 "Uploading file {name} to {bucket}/{prefix}",
                 upload.Media.FileName,
@@ -69,7 +67,7 @@ module Static =
                 upload.Prefix
             )
 
-            GCP.Storage.put client upload.Config.StaticAssetsBucket upload.Prefix upload.Media logger
+            client.Put upload.Config.StaticAssetsBucket upload.Prefix upload.Media logger
 
         let createIndex (fileNames: string seq) (cfg: Configuration) =
             fileNames
@@ -88,92 +86,95 @@ module Static =
             |> Result.map (fun media -> Media.Upload.Create media cfg "gifs")
             |> Result.map (fun upload -> uploadAsync client upload logger)
 
-        let synchronizeMedia
-            (dbxClient: Dropbox.DbxClient)
-            client
-            (mediaDir: string)
-            (logger: ILogger)
-            (cfg: Configuration)
-            (uploadMaker: Media.UploadMaker)
-            =
-            task {
-                let! fileList = Dropbox.Files.listFilesAsync mediaDir dbxClient
+    // NOTE[gastove|2022-08-20] Yeah, I have *no idea* what it could mean to
+    // sync media anymore. We... will see.
+    //
+    // let synchronizeMedia
+    //     (dbxClient: Dropbox.DbxClient)
+    //     client
+    //     (mediaDir: string)
+    //     (logger: ILogger)
+    //     (cfg: Configuration)
+    //     (uploadMaker: Media.UploadMaker)
+    //     =
+    //     task {
+    //         let! fileList = Dropbox.Files.listFilesAsync mediaDir dbxClient
 
-                let fileNames =
-                    fileList.Entries
-                    |> Seq.filter (fun entry -> entry.IsFile)
-                    |> Seq.map (fun entry -> entry.Name)
+    //         let fileNames =
+    //             fileList.Entries
+    //             |> Seq.filter (fun entry -> entry.IsFile)
+    //             |> Seq.map (fun entry -> entry.Name)
 
-                let! _ =
-                    fileNames
-                    |> Seq.map (fun n ->
-                        task {
-                            use! download = Dropbox.Files.loadFileAsync mediaDir n dbxClient
+    //         let! _ =
+    //             fileNames
+    //             |> Seq.map (fun n ->
+    //                 task {
+    //                     use! download = Dropbox.Files.loadFileAsync mediaDir n dbxClient
 
-                            let! stream =
-                                download.GetContentAsStreamAsync()
-                                |> Async.AwaitTask
+    //                     let! stream =
+    //                         download.GetContentAsStreamAsync()
+    //                         |> Async.AwaitTask
 
-                            match uploadMaker n stream with
-                            | Ok (upload) ->
-                                let! url = uploadAsync client upload logger
-                                logger.Information("Uploaded to {url}", url)
-                            | Error (e) -> logger.Error($"Upload of {n} failed", e)
-                        })
-                    |> Seq.map Async.AwaitTask
-                    |> Async.Parallel
+    //                     match uploadMaker n stream with
+    //                     | Ok (upload) ->
+    //                         let! url = uploadAsync client upload logger
+    //                         logger.Information("Uploaded to {url}", url)
+    //                     | Error (e) -> logger.Error($"Upload of {n} failed", e)
+    //                 })
+    //             |> Seq.map Async.AwaitTask
+    //             |> Async.Parallel
 
-                match createAndUploadIndex client fileNames cfg logger with
-                | Ok (indexUpload) ->
-                    let! indexResult = indexUpload
-                    logger.Information("Uploaded index to {indexResult}", indexResult)
-                | Error (e) -> logger.Error("Failed to create or upload index", e)
+    //         match createAndUploadIndex client fileNames cfg logger with
+    //         | Ok (indexUpload) ->
+    //             let! indexResult = indexUpload
+    //             logger.Information("Uploaded index to {indexResult}", indexResult)
+    //         | Error (e) -> logger.Error("Failed to create or upload index", e)
 
-                return ()
-            }
+    //         return ()
+    //     }
 
-        let syncGifs (dbxClient: Dropbox.DbxClient) gcpClient (logger: ILogger) (cfg: Configuration) =
-            let uploadMaker =
-                Media.buildUploadMaker cfg Constants.StaticAssetsGifsPrefix
+    // let syncGifs (dbxClient: Dropbox.DbxClient) gcpClient (logger: ILogger) (cfg: Configuration) =
+    //     let uploadMaker =
+    //         Media.buildUploadMaker cfg Constants.StaticAssetsGifsPrefix
 
-            synchronizeMedia dbxClient gcpClient Constants.GifsDir logger cfg uploadMaker
+    //     synchronizeMedia dbxClient gcpClient Constants.GifsDir logger cfg uploadMaker
 
-        // let syncImgs (dbxClient: Dropbox.DbxClient) (logger: ILogger) (cfg: Configuration) =
-        //     let uploadMaker =
-        //         Media.buildUploadMaker cfg Constants.StaticAssetsImgagesPrefix
+    // // let syncImgs (dbxClient: Dropbox.DbxClient) (logger: ILogger) (cfg: Configuration) =
+    // //     let uploadMaker =
+    // //         Media.buildUploadMaker cfg Constants.StaticAssetsImgagesPrefix
 
-        //     synchronizeMedia dbxClient Constants.GifsDir logger uploadMaker
+    // //     synchronizeMedia dbxClient Constants.GifsDir logger uploadMaker
 
-        let runSync cfg =
-            let logger = Log.Logger
+    // let runSync cfg =
+    //     let logger = Log.Logger
 
-            let maybeDbxClient = Dropbox.Auth.createDbxClient ()
-            let maybeGcpClient = Cookbook.GCP.Storage.getClient ()
+    //     let maybeDbxClient = Dropbox.Auth.createDbxClient ()
+    //     let maybeGcpClient = Cookbook.GCP.Storage.getClient ()
 
-            match maybeDbxClient, maybeGcpClient with
-            | Some dbxClient, Ok gcpClient ->
-                logger.Debug("Clients loaded")
+    //     match maybeDbxClient, maybeGcpClient with
+    //     | Some dbxClient, Ok gcpClient ->
+    //         logger.Debug("Clients loaded")
 
-                let sleepMilis =
-                    Constants.StaticAssetsResyncIntervalSeconds * 1000
+    //         let sleepMilis =
+    //             Constants.StaticAssetsResyncIntervalSeconds * 1000
 
-                task {
-                    while true do
-                        logger.Debug("Syncing static assets...")
+    //         task {
+    //             while true do
+    //                 logger.Debug("Syncing static assets...")
 
-                        do! syncGifs dbxClient gcpClient logger cfg
-                        // do! syncImgs dbxClient logger cfg
+    //                 do! syncGifs dbxClient gcpClient logger cfg
+    //                 // do! syncImgs dbxClient logger cfg
 
-                        logger.Debug($"Waiting {sleepMilis} millis to sync again...")
+    //                 logger.Debug($"Waiting {sleepMilis} millis to sync again...")
 
-                        do! Async.Sleep sleepMilis
-                }
-                |> Ok
-            | None, _ ->
-                "Failed to load Dropbox API key"
-                |> DropboxClientError
-                |> Error
-            | _, Error (gcpError) -> gcpError.Message |> GCPClientError |> Error
+    //                 do! Async.Sleep sleepMilis
+    //         }
+    //         |> Ok
+    //     | None, _ ->
+    //         "Failed to load Dropbox API key"
+    //         |> DropboxClientError
+    //         |> Error
+    //     | _, Error (gcpError) -> gcpError.Message |> GCPClientError |> Error
 
     module Markdown =
 
@@ -190,6 +191,8 @@ module Static =
 
         let loadDocumentFromResources (path: string) =
             let root = IO.Directory.GetCurrentDirectory()
-            let resourcesDir = IO.Path.Combine(root, "resources", "pages", path)
+
+            let resourcesDir =
+                IO.Path.Combine(root, "resources", "pages", path)
 
             loadDocument resourcesDir

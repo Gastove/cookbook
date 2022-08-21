@@ -18,9 +18,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Dropbox\Dropbox.fsproj" />
         <ProjectReference Include="..\Xml\Xml.fsproj" />
         <ProjectReference Include="..\GCP\GCP.fsproj" />
     </ItemGroup>
+
     <Import Project="..\..\.paket\Paket.Restore.targets" />
+
 </Project>
