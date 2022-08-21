@@ -7,8 +7,8 @@ type Configuration =
 
 module Constants =
     let BlogDirEnvVar = "BLOG_DIR"
-    let BlogDirDefault = "/blog"
-    let PageDirDefault = "/pages"
+    let BlogDirDefault = "html/blog"
+    let PageDirDefault = "html/pages"
     let GifsDir = "/gifs"
     let StaticAssetsResyncIntervalSeconds = 600
     let StaticAssetsBucket = "static.gastove.com"
