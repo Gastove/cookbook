@@ -10,9 +10,6 @@ variables:
   NAMESPACE: cookbook
   KUBECTL_URL: https://storage.googleapis.com/kubernetes-release/release/v1.13.3/bin/linux/amd64/kubectl
 
-before_script:
-  - echo $ARTIFACT_REGISTRY_CREDENTIALS | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
-
 build:
   services:
     - docker:dind
@@ -39,6 +36,7 @@ build_and_push:
   variables:
     ARTIFACT_REGISTRY_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
   script:
+    - echo $ARTIFACT_REGISTRY_CREDENTIALS | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
     # - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker pull $APP_IMAGE:$CI_COMMIT_SHA || true
     - >
@@ -51,8 +49,8 @@ build_and_push:
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
     - docker push $APP_IMAGE:$APP_VERSION
     - docker push $APP_IMAGE:latest
-  # only:
-  #   - master
+  only:
+    - master
 
 # deploy:
 #   stage: deploy
