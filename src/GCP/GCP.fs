@@ -64,6 +64,7 @@ module Storage =
 
     open Google.Cloud.Storage
     open Google.Apis.Upload
+    open Google.Apis.Download
 
     open Serilog
 
@@ -72,7 +73,7 @@ module Storage =
         abstract GetStream : string -> string -> ILogger -> Task<IO.Stream>
         abstract Put : string -> string -> Media -> ILogger -> Task<string>
         abstract List : string -> string -> ILogger -> Task<string list>
-        abstract TryExists: string -> string -> Task<Result<unit, exn>>
+        abstract TryExists : string -> string -> Task<Result<unit, exn>>
 
     type StorageClient =
         { Client: V1.StorageClient }
@@ -86,6 +87,16 @@ module Storage =
                 |> Ok
             with
             | exn -> Error(exn)
+
+        member __.DownloadProgress fileName (logger: ILogger) =
+            System.Progress<IDownloadProgress> (fun p ->
+                logger.Information(
+                    "Downloading {FileName}; wrote {BytesDownloaded}, status: {Status}",
+                    fileName,
+                    p.BytesDownloaded,
+                    p.Status
+                ))
+
 
         interface IStorageClient with
             member this.Put bucket prefix (file: Media) (logger: ILogger) =
@@ -125,7 +136,9 @@ module Storage =
                 task {
                     let! stream = (this :> IStorageClient).GetStream bucket path logger
                     use reader = new IO.StreamReader(stream)
-                    return! reader.ReadToEndAsync()
+                    let! content = reader.ReadToEndAsync()
+                    logger.Information("Downloaded string of length {Length}", content.Length)
+                    return content
                 }
 
             member this.GetStream (bucket: string) (path: string) (logger: ILogger) : Task<IO.Stream> =
@@ -133,36 +146,56 @@ module Storage =
                     let stream =
                         new IO.BufferedStream(new IO.MemoryStream()) :> IO.Stream
 
-                    let! meta = this.Client.DownloadObjectAsync(bucket, path, stream)
-                    logger.Information("Downloaded {Size} bytes", meta.Size)
+                    use tokenSource = new CancellationTokenSource()
+                    let token = tokenSource.Token
 
+                    let! _meta =
+                        this.Client.DownloadObjectAsync(
+                            bucket,
+                            path,
+                            stream,
+                            null,
+                            token,
+                            (this.DownloadProgress $"{bucket}/{path}" logger)
+                        )
+
+                    stream.Seek(0, IO.SeekOrigin.Begin) |> ignore
                     return stream
                 }
 
             member this.List (bucket: string) (prefix: string) (logger: ILogger) : Task<string list> =
                 task {
-                    let contents = this.Client.ListObjectsAsync(bucket, prefix)
+                    let contents =
+                        this.Client.ListObjectsAsync(bucket, prefix)
+
                     use tokenSource = new CancellationTokenSource()
                     let token = tokenSource.Token
                     let contentsEnumerator = contents.GetAsyncEnumerator(token)
 
                     let mutable results = List.empty
+                    // This is a bit funky, but, you can't let!-assign to a
+                    // mutable variable, and we must call MoveNextAsync to get
+                    // rolling or Current will be null. So.
                     let mutable keepGoing = true
+                    let! shouldStart = contentsEnumerator.MoveNextAsync()
+                    keepGoing <- shouldStart
 
                     while keepGoing do
                         let got = contentsEnumerator.Current
                         logger.Information("Successfully listing from {Bucket}: {Name}", bucket, got.Name)
                         results <- got.Name :: results
+
                         let! shouldKeepGoing = contentsEnumerator.MoveNextAsync()
                         keepGoing <- shouldKeepGoing
 
                     return results
                 }
-            member this.TryExists bucket path: Task<Result<unit, exn>> =
+
+            member this.TryExists bucket path : Task<Result<unit, exn>> =
                 task {
-                     try
-                         let! _ = this.Client.GetObjectAsync(bucket, path)
-                         return () |> Ok
-                     with
-                     | exn -> return exn |> Error
+                    try
+                        let! _ = this.Client.GetObjectAsync(bucket, path)
+                        return () |> Ok
+                    with
+                    | exn -> return exn |> Error
                 }
