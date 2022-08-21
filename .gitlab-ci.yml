@@ -11,7 +11,7 @@ variables:
   KUBECTL_URL: https://storage.googleapis.com/kubernetes-release/release/v1.13.3/bin/linux/amd64/kubectl
 
 before_script:
-  - cat $ARTIFACT_REGISTRY_CREDENTIALS | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
+  - echo $ARTIFACT_REGISTRY_CREDENTIALS | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
 
 build:
   services:
