@@ -18,8 +18,16 @@ module Server =
 
     // TODO[gastove|2022-08-18] Gotta re-do this for Cloud Run.
     module Ports =
-        let Http = 5000
+        let DefaultHttp = 5000
         let Metrics = 5005
+
+        let httpPortOrDefault() =
+            try
+                match (System.Environment.GetEnvironmentVariable "PORT").Trim() with
+                | "" -> DefaultHttp
+                | httpPort -> httpPort |> int
+            with
+            | _ -> DefaultHttp
 
     let webApp =
         choose [ GET
@@ -102,7 +110,7 @@ module Main =
             .UseSerilog(Logging.ConfigureRuntimeLogger)
             .ConfigureWebHost(fun host ->
                 host.ConfigureKestrel (fun kestrelConfig ->
-                    kestrelConfig.ListenAnyIP(Server.Ports.Http)
+                    kestrelConfig.ListenAnyIP(Server.Ports.httpPortOrDefault())
                     kestrelConfig.ListenAnyIP(Server.Ports.Metrics))
                 |> ignore)
             .ConfigureWebHostDefaults(fun webHostBuilder ->
