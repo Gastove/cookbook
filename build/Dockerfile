@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
-WORKDIR /build
-COPY . /build
+RUN mkdir /app
+COPY . .
 
 RUN dotnet tool restore
 RUN dotnet paket restore
