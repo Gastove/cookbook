@@ -9,7 +9,7 @@ RUN dotnet publish -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 
-EXPOSE 5000
+ENV DOTNET_ENVIRONMENT="Production"
 
 WORKDIR /app
 
