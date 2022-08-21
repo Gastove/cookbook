@@ -8,7 +8,7 @@ module Templating =
     let LinkedBlog = a [ _href "/blog" ] [ str "blog" ]
 
     let linkedTitle links title =
-        [ h1 [ _class "page-title" ] ([str "> "] @ links @ [ str title ])
+        [ h1 [ _class "page-title" ] ([ str "> " ] @ links @ [ str title ])
           hr [] ]
 
     let header pageTitle =
@@ -68,7 +68,8 @@ module Templating =
           hr [] ]
 
     let postSummaries (posts: BlogPost array) =
-        let hdr = linkedTitle [LinkedHome; LinkedBlog] "/index"
+        let hdr =
+            linkedTitle [ LinkedHome; LinkedBlog ] "/index"
 
         let summaries =
             posts
@@ -116,6 +117,7 @@ module Handlers =
 
     open Giraffe
     open Prometheus
+    open Serilog
 
     let IndexHits =
         Metrics.CreateCounter("index_gets", "How many hits to the root resource of the blog?")
@@ -135,32 +137,36 @@ module Handlers =
 
         handleContext (fun ctx ->
             task {
-                match Dropbox.Auth.createDbxClient () with
-                | Some client ->
-                    use client = client
-                    printfn $"Loading {slug}, apparently"
-                    let! maybeContents = HomePage.tryLoadContent cfg.PagesDir $"{slug}.markdown" client
+                match GCP.Storage.StorageClient.TryCreate() with
+                | Ok client ->
 
-                    let contents =
-                        maybeContents
-                        |> Option.defaultValue "We were never in the game"
+                    let! maybeContents =
+                        HomePage.tryLoadContent
+                            cfg.StaticAssetsBucket
+                            $"{cfg.PagesDir}/{slug}.markdown"
+                            client
+                            Log.Logger
 
-                    let header =
-                        Templating.linkedTitle [Templating.LinkedHome] $"{slug}.md"
+                    match maybeContents with
+                    | Ok contents ->
 
-                    let page =
-                        Templating.page
-                            "gastove.com"
-                            List.empty
-                            (header
-                             @ [ (Giraffe.ViewEngine.HtmlElements.rawText contents) ])
+                        let header =
+                            Templating.linkedTitle [ Templating.LinkedHome ] $"{slug}.md"
 
-                    return! ctx.WriteHtmlViewAsync page
+                        let page =
+                            Templating.page
+                                "gastove.com"
+                                List.empty
+                                (header
+                                 @ [ (Giraffe.ViewEngine.HtmlElements.rawText contents) ])
 
-                | None ->
+                        return! ctx.WriteHtmlViewAsync page
+                    | Error (exn) ->
+                        ctx.SetStatusCode 500
+                        return! ctx.WriteTextAsync(exn.ToString())
+                | Error (exn) ->
                     ctx.SetStatusCode 500
-                    return Some ctx
-
+                    return! ctx.WriteTextAsync(exn.ToString())
             })
 
     let blogIndexHandler () =
@@ -169,13 +175,11 @@ module Handlers =
                 let cfg = Config.loadConfig ()
                 let blogTitle = "gastove.com/blog"
 
-                match Dropbox.Auth.createDbxClient () with
-                | Some client ->
-                    use client = client
-                    let! posts = Blog.loadAllPosts cfg.BlogDir client
+                match GCP.Storage.StorageClient.TryCreate() with
+                | Ok client ->
+                    let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client Log.Logger
 
-                    let summaries =
-                        posts |> Templating.postSummaries
+                    let summaries = posts |> Templating.postSummaries
 
                     let view =
                         Templating.page blogTitle List.empty summaries
@@ -183,7 +187,7 @@ module Handlers =
                     IndexHits.Inc()
                     return! ctx.WriteHtmlViewAsync view
 
-                | None ->
+                | Error _ ->
                     ctx.SetStatusCode 500
                     return! ctx.WriteTextAsync "There was a problem loading this site, please check back later"
             })
@@ -193,11 +197,10 @@ module Handlers =
 
         handleContext (fun ctx ->
             task {
-                match Dropbox.Auth.createDbxClient () with
-                | Some client ->
-                    use client = client
+                match GCP.Storage.StorageClient.TryCreate() with
+                | Ok client ->
 
-                    let! posts = Blog.loadAllPosts cfg.BlogDir client
+                    let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client Log.Logger
 
                     let feed = Feed.formatFeed <| List.ofArray posts
 
@@ -207,7 +210,7 @@ module Handlers =
                         ctx.WriteBytesAsync
                         <| System.Text.Encoding.UTF8.GetBytes(feed.OuterXml)
 
-                | None ->
+                | Error _ ->
                     ctx.SetStatusCode 500
                     return Some ctx
             })
@@ -219,11 +222,10 @@ module Handlers =
                 let blogTitle = "blog.gastove.com"
                 let postFile = $"{slug}.html"
 
-                match Dropbox.Auth.createDbxClient () with
-                | Some client ->
-                    use client = client
+                match GCP.Storage.StorageClient.TryCreate() with
+                | Ok client ->
 
-                    let! post = Blog.loadPost cfg.BlogDir postFile client
+                    let! post = Blog.loadPost cfg.StaticAssetsBucket $"{cfg.BlogDir}/{postFile}" client Log.Logger
 
                     let postPage = post |> Templating.postView
 
@@ -234,7 +236,7 @@ module Handlers =
 
                     return! ctx.WriteHtmlViewAsync view
 
-                | None ->
+                | Error _ ->
                     ctx.SetStatusCode 500
                     return Some ctx
             })
