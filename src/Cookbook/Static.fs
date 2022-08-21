@@ -10,7 +10,7 @@ module Static =
 
         type Upload =
             { Media: Media
-              Config: Configuration
+              Config: CookbookConfig
               Prefix: string }
 
             static member Create media cfg pre =
@@ -19,7 +19,7 @@ module Static =
                   Prefix = pre }
 
         type UploadMaker = string -> System.IO.Stream -> Result<Upload, string>
-        type UploadMakerMaker = Configuration -> string -> string -> UploadMaker
+        type UploadMakerMaker = CookbookConfig -> string -> string -> UploadMaker
 
         let buildUploadMaker cfg prefix : UploadMaker =
             fun name stream ->
@@ -69,7 +69,7 @@ module Static =
 
             client.Put upload.Config.StaticAssetsBucket upload.Prefix upload.Media logger
 
-        let createIndex (fileNames: string seq) (cfg: Configuration) =
+        let createIndex (fileNames: string seq) (cfg: CookbookConfig) =
             fileNames
             |> Seq.map (fun fileName ->
                 $"http://{cfg.StaticAssetsBucket}/gifs/{fileName}"
@@ -78,7 +78,7 @@ module Static =
             |> Html.index
             |> Giraffe.ViewEngine.RenderView.AsBytes.htmlDocument
 
-        let createAndUploadIndex client (fileNames: string seq) (cfg: Configuration) (logger: ILogger) =
+        let createAndUploadIndex client (fileNames: string seq) (cfg: CookbookConfig) (logger: ILogger) =
             let index = createIndex fileNames cfg
             let indexStream = new System.IO.MemoryStream(index)
 

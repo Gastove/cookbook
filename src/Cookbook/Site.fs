@@ -119,6 +119,8 @@ module Handlers =
     open Prometheus
     open Serilog
 
+    open Microsoft.Extensions.Options
+
     let IndexHits =
         Metrics.CreateCounter("index_gets", "How many hits to the root resource of the blog?")
 
@@ -133,9 +135,8 @@ module Handlers =
     let oneHour = System.TimeSpan.FromHours(1)
 
     let pageHandler (slug: string) =
-        let cfg = Config.loadConfig ()
-
         handleContext (fun ctx ->
+            let cfg = ctx.GetService<IOptions<CookbookConfig>>().Value
             task {
                 match GCP.Storage.StorageClient.TryCreate() with
                 | Ok client ->
@@ -172,7 +173,7 @@ module Handlers =
     let blogIndexHandler () =
         handleContext (fun ctx ->
             task {
-                let cfg = Config.loadConfig ()
+                let cfg = ctx.GetService<IOptions<CookbookConfig>>().Value
                 let blogTitle = "gastove.com/blog"
 
                 match GCP.Storage.StorageClient.TryCreate() with
@@ -193,9 +194,8 @@ module Handlers =
             })
 
     let feedHandler () =
-        let cfg = Config.loadConfig ()
-
         handleContext (fun ctx ->
+            let cfg = ctx.GetService<IOptions<CookbookConfig>>().Value
             task {
                 match GCP.Storage.StorageClient.TryCreate() with
                 | Ok client ->
@@ -217,8 +217,9 @@ module Handlers =
 
     let blogPostHandler (slug: string) =
         handleContext (fun ctx ->
+            let cfg = ctx.GetService<IOptions<CookbookConfig>>().Value
+
             task {
-                let cfg = Config.loadConfig ()
                 let blogTitle = "blog.gastove.com"
                 let postFile = $"{slug}.html"
 
