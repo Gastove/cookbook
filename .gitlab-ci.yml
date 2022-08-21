@@ -50,8 +50,8 @@ build_and_push:
     - docker push $APP_IMAGE:$CI_COMMIT_SHA
     - docker push $APP_IMAGE:$APP_VERSION
     - docker push $APP_IMAGE:latest
-  only:
-    - master
+  # only:
+  #   - master
 
 # deploy:
 #   stage: deploy
