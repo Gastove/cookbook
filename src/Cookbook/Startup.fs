@@ -91,9 +91,11 @@ module Main =
         let contentRoot = Directory.GetCurrentDirectory()
         let webRoot = Path.Combine(contentRoot, "wwwroot")
 
-        match Static.Sync.runSync (Config.loadConfig ()) with
-        | Ok (syncer) -> syncer.Start()
-        | Error (errorValue) -> Log.Error("Failed to start sync process; error was, {errorValue}", errorValue)
+        // TODO[gastove|2022-08-20] We're at minimum moving syncing elsewhere.
+        //
+        // match Static.Sync.runSync (Config.loadConfig ()) with
+        // | Ok (syncer) -> syncer.Start()
+        // | Error (errorValue) -> Log.Error("Failed to start sync process; error was, {errorValue}", errorValue)
 
         Host
             .CreateDefaultBuilder(args)
