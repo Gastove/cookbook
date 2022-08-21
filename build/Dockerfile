@@ -1,5 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
+WORKDIR /app
+COPY . /app
+
 RUN pwd
 RUN ls -la
 
