@@ -10,47 +10,44 @@ variables:
   NAMESPACE: cookbook
   KUBECTL_URL: https://storage.googleapis.com/kubernetes-release/release/v1.13.3/bin/linux/amd64/kubectl
 
-build:
-  services:
-    - docker:dind
-  image: docker:stable
-  stage: build
-  script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $APP_IMAGE:$CI_COMMIT_SHA || true
-    - >
-        docker build
-        --cache-from $APP_IMAGE:$CI_COMMIT_SHA
-        --tag $APP_IMAGE:$APP_VERSION
-        --tag $APP_IMAGE:$CI_COMMIT_SHA
-        --tag $APP_IMAGE:latest
-        --file build/Dockerfile .
-  except:
-    - master
+# build:
+#   services:
+#     - docker:dind
+#   image: docker:stable
+#   stage: build
+#   script:
+#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+#     - docker pull $APP_IMAGE:$CI_COMMIT_SHA || true
+#     - >
+#         docker build
+#         --cache-from $APP_IMAGE:$CI_COMMIT_SHA
+#         --tag $APP_IMAGE:$APP_VERSION
+#         --tag $APP_IMAGE:$CI_COMMIT_SHA
+#         --tag $APP_IMAGE:latest
+#         --file build/Dockerfile .
+#   except:
+#     - master
 
-build_and_push:
-  services:
-    - docker:dind
-  image: docker:stable
-  stage: build
-  variables:
-    ARTIFACT_REGISTRY_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
-  script:
-    - cat $ARTIFACT_REGISTRY_CREDENTIALS | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
-    # - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $APP_IMAGE:$CI_COMMIT_SHA || true
-    - >
-        docker build
-        --cache-from $APP_IMAGE:$CI_COMMIT_SHA
-        --tag $APP_IMAGE:$APP_VERSION
-        --tag $APP_IMAGE:$CI_COMMIT_SHA
-        --tag $APP_IMAGE:latest
-        --file build/Dockerfile .
-    - docker push $APP_IMAGE:$CI_COMMIT_SHA
-    - docker push $APP_IMAGE:$APP_VERSION
-    - docker push $APP_IMAGE:latest
-  only:
-    - master
+# build_and_push:
+#   services:
+#     - docker:dind
+#   image: docker:stable
+#   stage: build
+#   script:
+#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+#     - docker pull $APP_IMAGE:$CI_COMMIT_SHA || true
+#     - >
+#         docker build
+#         --cache-from $APP_IMAGE:$CI_COMMIT_SHA
+#         --tag $APP_IMAGE:$APP_VERSION
+#         --tag $APP_IMAGE:$CI_COMMIT_SHA
+#         --tag $APP_IMAGE:latest
+#         --file build/Dockerfile .
+#     - docker push $APP_IMAGE:$CI_COMMIT_SHA
+#     - docker push $APP_IMAGE:$APP_VERSION
+#     - docker push $APP_IMAGE:latest
+#   only:
+#     - master
 
 # deploy:
 #   stage: deploy
