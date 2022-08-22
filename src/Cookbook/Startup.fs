@@ -16,7 +16,11 @@ module Server =
 
     open Microsoft.Extensions.Logging
 
-    // TODO[gastove|2022-08-18] Gotta re-do this for Cloud Run.
+    // Google Cloud Run requires we respect the Port environment variable. I
+    // can't find a satisfying way to configure that outside of code; the
+    // appsettings.json system doesn't support env var reading, and anything I
+    // set in the container will be set at build-time, not run-time. So. We'll
+    // munge it here.
     module Ports =
         let DefaultHttp = 5000
         let Metrics = 5005
@@ -60,7 +64,7 @@ module Server =
         services.AddGiraffe() |> ignore
         services.AddResponseCaching() |> ignore
         services.AddHealthChecks() |> ignore
-
+        services.AddSingleton<GCP.Storage.IStorageClient, GCP.Storage.StorageClient>() |> ignore
 
     let configureApp (app: IApplicationBuilder) =
         let env =

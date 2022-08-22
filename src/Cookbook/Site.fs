@@ -119,6 +119,8 @@ module Handlers =
     open Prometheus
     open Serilog
 
+    open Microsoft.Extensions.Options
+
     let IndexHits =
         Metrics.CreateCounter("index_gets", "How many hits to the root resource of the blog?")
 
@@ -132,20 +134,23 @@ module Handlers =
     // Caching TTL
     let oneHour = System.TimeSpan.FromHours(1)
 
-    let pageHandler (slug: string) =
-        let cfg = Config.loadConfig ()
+    module Content =
+        open System.Threading.Tasks
+        open Giraffe.ViewEngine.HtmlElements
 
-        handleContext (fun ctx ->
-            task {
-                match GCP.Storage.StorageClient.TryCreate() with
-                | Ok client ->
+        type Content =
+            | HTMLView of XmlNode
+            | StringData of contentType: string * data: string
 
+        type ContentResponse = Result<Content, int * string>
+
+        type ContentFunc = GCP.Storage.IStorageClient -> CookbookConfig -> ILogger -> Task<ContentResponse>
+
+        let pageContent (slug: string) =
+            fun client (cfg: CookbookConfig) logger ->
+                task {
                     let! maybeContents =
-                        HomePage.tryLoadContent
-                            cfg.StaticAssetsBucket
-                            $"{cfg.PagesDir}/{slug}.markdown"
-                            client
-                            Log.Logger
+                        HomePage.tryLoadContent cfg.StaticAssetsBucket $"{cfg.PagesDir}/{slug}.markdown" client logger
 
                     match maybeContents with
                     | Ok contents ->
@@ -154,78 +159,34 @@ module Handlers =
                             Templating.linkedTitle [ Templating.LinkedHome ] $"{slug}.md"
 
                         let page =
-                            Templating.page
-                                "gastove.com"
-                                List.empty
-                                (header
-                                 @ [ (Giraffe.ViewEngine.HtmlElements.rawText contents) ])
+                            Templating.page "gastove.com" List.empty (header @ [ (rawText contents) ])
 
-                        return! ctx.WriteHtmlViewAsync page
-                    | Error (exn) ->
-                        ctx.SetStatusCode 500
-                        return! ctx.WriteTextAsync(exn.ToString())
-                | Error (exn) ->
-                    ctx.SetStatusCode 500
-                    return! ctx.WriteTextAsync(exn.ToString())
-            })
+                        return page |> HTMLView |> Ok
+                    | Error exn -> return (500, exn |> string) |> Error
+                }
 
-    let blogIndexHandler () =
-        handleContext (fun ctx ->
+        let blogIndexContent (client: GCP.Storage.IStorageClient) (cfg: CookbookConfig) logger =
             task {
-                let cfg = Config.loadConfig ()
                 let blogTitle = "gastove.com/blog"
 
-                match GCP.Storage.StorageClient.TryCreate() with
-                | Ok client ->
-                    let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client Log.Logger
+                let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
 
-                    let summaries = posts |> Templating.postSummaries
+                let summaries = posts |> Templating.postSummaries
 
-                    let view =
-                        Templating.page blogTitle List.empty summaries
+                let view =
+                    Templating.page blogTitle List.empty summaries
 
-                    IndexHits.Inc()
-                    return! ctx.WriteHtmlViewAsync view
+                IndexHits.Inc()
+                return view |> HTMLView |> Ok
+            }
 
-                | Error _ ->
-                    ctx.SetStatusCode 500
-                    return! ctx.WriteTextAsync "There was a problem loading this site, please check back later"
-            })
+        let blogPostContent (slug: string) =
+            fun client (cfg: CookbookConfig) logger ->
+                task {
+                    let blogTitle = "blog.gastove.com"
+                    let postFile = $"{slug}.html"
 
-    let feedHandler () =
-        let cfg = Config.loadConfig ()
-
-        handleContext (fun ctx ->
-            task {
-                match GCP.Storage.StorageClient.TryCreate() with
-                | Ok client ->
-
-                    let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client Log.Logger
-
-                    let feed = Feed.formatFeed <| List.ofArray posts
-
-                    ctx.SetContentType "application/atom+xml"
-
-                    return!
-                        ctx.WriteBytesAsync
-                        <| System.Text.Encoding.UTF8.GetBytes(feed.OuterXml)
-
-                | Error _ ->
-                    ctx.SetStatusCode 500
-                    return Some ctx
-            })
-
-    let blogPostHandler (slug: string) =
-        handleContext (fun ctx ->
-            task {
-                let cfg = Config.loadConfig ()
-                let blogTitle = "blog.gastove.com"
-                let postFile = $"{slug}.html"
-
-                match GCP.Storage.StorageClient.TryCreate() with
-                | Ok client ->
-
-                    let! post = Blog.loadPost cfg.StaticAssetsBucket $"{cfg.BlogDir}/{postFile}" client Log.Logger
+                    let! post = Blog.loadPost cfg.StaticAssetsBucket $"{cfg.BlogDir}/{postFile}" client logger
 
                     let postPage = post |> Templating.postView
 
@@ -234,12 +195,55 @@ module Handlers =
 
                     PostHits.Labels([| slug |]).Inc()
 
-                    return! ctx.WriteHtmlViewAsync view
+                    return view |> HTMLView |> Ok
+                }
 
-                | Error _ ->
-                    ctx.SetStatusCode 500
-                    return Some ctx
+        let feedContent client (cfg: CookbookConfig) logger =
+            task {
+                let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
+
+                let feed = Feed.formatFeed <| List.ofArray posts
+
+                return
+                    ("application/atom+xml", feed.OuterXml)
+                    |> StringData
+                    |> Ok
+            }
+
+    let handlerMaker (func: Content.ContentFunc) =
+        handleContext (fun ctx ->
+            let cfg =
+                ctx.GetService<IOptions<CookbookConfig>>().Value
+
+            let storageClient =
+                ctx.GetService<GCP.Storage.IStorageClient>()
+
+            task {
+                let! result = func storageClient cfg Log.Logger
+
+                match result with
+                | Ok content ->
+                    match content with
+                    | Content.HTMLView view -> return! ctx.WriteHtmlViewAsync view
+                    | Content.StringData (contentType, data) ->
+                        ctx.SetContentType contentType
+                        return! ctx.WriteStringAsync data
+
+                | Error ((statusCode, errMsg)) ->
+                    ctx.SetStatusCode statusCode
+                    return! ctx.WriteStringAsync errMsg
             })
+
+
+    let pageHandler (slug: string) =
+        slug |> Content.pageContent |> handlerMaker
+
+    let blogIndexHandler () = handlerMaker Content.blogIndexContent
+
+    let blogPostHandler (slug: string) =
+        slug |> Content.blogPostContent |> handlerMaker
+
+    let feedHandler () = Content.feedContent |> handlerMaker
 
     let cachingBlogIndexHandler () =
         publicResponseCaching (oneHour.TotalSeconds |> int) None

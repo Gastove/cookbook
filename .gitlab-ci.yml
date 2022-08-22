@@ -1,10 +1,7 @@
-stages:
-  - build
-
 build:
   image: mcr.microsoft.com/dotnet/sdk:6.0
   script:
     - dotnet tool restore
+    - dotnet paket restore
     - dotnet build
     - dotnet test
-

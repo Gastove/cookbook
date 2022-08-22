@@ -75,18 +75,18 @@ module Storage =
         abstract List : string -> string -> ILogger -> Task<string list>
         abstract TryExists : string -> string -> Task<Result<unit, exn>>
 
-    type StorageClient =
-        { Client: V1.StorageClient }
+    type StorageClient() =
+        let Client = V1.StorageClient.Create()
 
-        static member Create client = { Client = client }
+        // static member Create client = { Client = client }
 
-        static member TryCreate() =
-            try
-                V1.StorageClient.Create()
-                |> StorageClient.Create
-                |> Ok
-            with
-            | exn -> Error(exn)
+        // static member TryCreate() =
+        //     try
+        //         V1.StorageClient.Create()
+        //         |> StorageClient.Create
+        //         |> Ok
+        //     with
+        //     | exn -> Error(exn)
 
         member __.DownloadProgress fileName (logger: ILogger) =
             System.Progress<IDownloadProgress> (fun p ->
@@ -99,7 +99,7 @@ module Storage =
 
 
         interface IStorageClient with
-            member this.Put bucket prefix (file: Media) (logger: ILogger) =
+            member __.Put bucket prefix (file: Media) (logger: ILogger) =
                 let acl =
                     Some(V1.PredefinedObjectAcl.PublicRead)
                     |> Option.toNullable
@@ -120,7 +120,7 @@ module Storage =
 
                 task {
                     let! obj =
-                        this.Client.UploadObjectAsync(
+                        Client.UploadObjectAsync(
                             bucket = bucket,
                             objectName = objectName,
                             contentType = file.MediaType,
@@ -150,7 +150,7 @@ module Storage =
                     let token = tokenSource.Token
 
                     let! _meta =
-                        this.Client.DownloadObjectAsync(
+                        Client.DownloadObjectAsync(
                             bucket,
                             path,
                             stream,
@@ -163,10 +163,10 @@ module Storage =
                     return stream
                 }
 
-            member this.List (bucket: string) (prefix: string) (logger: ILogger) : Task<string list> =
+            member _.List (bucket: string) (prefix: string) (logger: ILogger) : Task<string list> =
                 task {
                     let contents =
-                        this.Client.ListObjectsAsync(bucket, prefix)
+                        Client.ListObjectsAsync(bucket, prefix)
 
                     use tokenSource = new CancellationTokenSource()
                     let token = tokenSource.Token
@@ -191,10 +191,10 @@ module Storage =
                     return results
                 }
 
-            member this.TryExists bucket path : Task<Result<unit, exn>> =
+            member _.TryExists bucket path : Task<Result<unit, exn>> =
                 task {
                     try
-                        let! _ = this.Client.GetObjectAsync(bucket, path)
+                        let! _ = Client.GetObjectAsync(bucket, path)
                         return () |> Ok
                     with
                     | exn -> return exn |> Error
