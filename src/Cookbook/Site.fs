@@ -4,11 +4,16 @@ module Templating =
 
     open Giraffe.ViewEngine
 
-    let LinkedHome = a [ _href "/" ] [ str "$HOME/" ]
+    let LinkedHome = a [ _href "/" ] [ str "$HOME" ]
     let LinkedBlog = a [ _href "/blog" ] [ str "blog" ]
 
     let linkedTitle links title =
-        [ h1 [ _class "page-title" ] ([ str "> " ] @ links @ [ str title ])
+        let withSep =
+            links
+            |> List.rev
+            |> List.fold (fun newLinks link -> link :: (str "/") :: newLinks) List.empty
+
+        [ h1 [ _class "page-title" ] ([ str "> " ] @ withSep @ [ str title ])
           hr [] ]
 
     let header pageTitle =
@@ -46,13 +51,17 @@ module Templating =
               sep
               a [ _href "/feed/atom" ] [ str "Atom" ]
               sep
-              a [ _href "/blog"] [str "Blog!"]
+              a [ _href "/blog" ] [ str "Blog!" ]
               sep
-              a [ _href "/about"] [str "About"]
+              a [ _href "/about" ] [ str "About" ]
               sep
-              a [_href "/projects"] [str "Projects"]
+              a [ _href "/projects" ] [
+                  str "Projects"
+              ]
               sep
-              a [_href "/colophon"] [str "Colophon"]
+              a [ _href "/colophon" ] [
+                  str "Colophon"
+              ]
               br []
               br []
               str "© Ross M. Donaldson, 2022" ]
@@ -77,7 +86,7 @@ module Templating =
 
     let postSummaries (posts: BlogPost array) =
         let hdr =
-            linkedTitle [ LinkedHome; LinkedBlog ] "/index"
+            linkedTitle [ LinkedHome; LinkedBlog ] "index"
 
         let summaries =
             posts
@@ -95,9 +104,11 @@ module Templating =
 
         [ div [ _class "post" ] [
             h2 [ _class "post-title" ] [
-                a [ _href "/" ] [ str "> $HOME" ]
-                a [ _href "/blog" ] [ str "/blog" ]
-                str $"/{blogPost.Title}"
+                str "> "
+                a [ _href "/" ] [ str "$HOME" ]
+                str "/"
+                a [ _href "/blog" ] [ str "blog" ]
+                str $"/\"{blogPost.Title}\""
             ]
             hr []
             div [] [ rawText blogPost.Body ]
@@ -191,7 +202,7 @@ module Handlers =
         let blogPostContent (slug: string) =
             fun client (cfg: CookbookConfig) logger ->
                 task {
-                    let blogTitle = "blog.gastove.com"
+                    let blogTitle = "gastove.com/blog"
                     let postFile = $"{slug}.html"
 
                     let! post = Blog.loadPost cfg.StaticAssetsBucket $"{cfg.BlogDir}/{postFile}" client logger
@@ -253,18 +264,13 @@ module Handlers =
 
     let feedHandler () = Content.feedContent |> handlerMaker
 
-    let cachingBlogIndexHandler () =
+    let cache =
         publicResponseCaching (oneHour.TotalSeconds |> int) None
-        >=> blogIndexHandler ()
 
-    let cachingFeedHandler () =
-        publicResponseCaching (oneHour.TotalSeconds |> int) None
-        >=> feedHandler ()
+    let cachingBlogIndexHandler () = cache >=> blogIndexHandler ()
 
-    let cachingBlogPostHandler blogPost =
-        publicResponseCaching (oneHour.TotalSeconds |> int) None
-        >=> (blogPostHandler blogPost)
+    let cachingFeedHandler () = cache >=> feedHandler ()
 
-    let cachingPageHandler slug =
-        publicResponseCaching (oneHour.TotalSeconds |> int) None
-        >=> (pageHandler slug)
+    let cachingBlogPostHandler blogPost = cache >=> (blogPostHandler blogPost)
+
+    let cachingPageHandler slug = cache >=> (pageHandler slug)
