@@ -37,14 +37,22 @@ module Templating =
             [ a [ _href "/" ] [ str "Home" ]
               sep
               a [ _href "https://gitlab.com/gastove" ] [
-                  str "Gitlab"
+                  str "GitLab"
               ]
               sep
               a [ _href "https://github.com/Gastove" ] [
-                  str "Github"
+                  str "GitHub"
               ]
               sep
               a [ _href "/feed/atom" ] [ str "Atom" ]
+              sep
+              a [ _href "/blog"] [str "Blog!"]
+              sep
+              a [ _href "/about"] [str "About"]
+              sep
+              a [_href "/projects"] [str "Projects"]
+              sep
+              a [_href "/colophon"] [str "Colophon"]
               br []
               br []
               str "© Ross M. Donaldson, 2022" ]
