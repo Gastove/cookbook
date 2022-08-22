@@ -64,7 +64,7 @@ module Server =
         services.AddGiraffe() |> ignore
         services.AddResponseCaching() |> ignore
         services.AddHealthChecks() |> ignore
-
+        services.AddSingleton<GCP.Storage.IStorageClient, GCP.Storage.StorageClient>() |> ignore
 
     let configureApp (app: IApplicationBuilder) =
         let env =
