@@ -11,6 +11,8 @@ module Constants =
     let StaticAssetsImgagesPrefix = "img"
 
 type CookbookConfig() =
-    member val BlogDir = Constants.BlogDirDefault with get, set
-    member val PagesDir = Constants.PageDirDefault with get, set
-    member val StaticAssetsBucket = Constants.StaticAssetsBucket with get, set
+    static member CookbookConfig = "CookbookConfig"
+
+    member val BlogDir = "" with get, set
+    member val PagesDir = "" with get, set
+    member val StaticAssetsBucket = "" with get, set
