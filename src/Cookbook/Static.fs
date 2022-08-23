@@ -11,7 +11,8 @@ module Static =
 
     type FileSystemStorageClient() =
         interface GCP.Storage.IStorageClient with
-            member _.Get (folder: string) (path: string) (_: ILogger) : Task<string> =
+            member _.Get (folder: string) (path: string) (logger: ILogger) : Task<string> =
+                logger.Information("Trying to load {Path}", $"{folder}/{path}")
                 task {
                     return!
                         IO
@@ -32,6 +33,7 @@ module Static =
                     return
                         $"{folder}/{path}"
                         |> IO.Directory.EnumerateFiles
+                        |> Seq.map (IO.Path.GetFileName>>(sprintf "%s/%s" path))
                         |> Seq.toList
                 }
 
@@ -49,6 +51,7 @@ module Static =
                 }
 
             member _.TryExists (folder: string) (path: string) : Task<Result<unit, exn>> =
+                Log.Information("Trying to load {Path}", $"{folder}/{path}")
                 task {
                     let path = $"{folder}/{path}"
 
