@@ -102,9 +102,19 @@ module Templating =
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
-    let formatTag (tag: string) =
-        tag.Trim().Trim(':')
-        |> String.capitalizeFirst
+    let cleanTag (tag: string) =
+        tag.Trim().Trim(':') |> String.capitalizeFirst
+
+    let formatTag (tag: string) = str $"{tag}/ "
+
+    let splitAndFormatTags (tags: string) =
+        let tags =
+            tags.Split([| ':' |])
+            |> List.ofArray
+            |> List.filter String.notNullOrWhiteSpace
+            |> List.map (cleanTag >> formatTag)
+
+        div [] (str "Tags: " :: tags)
 
     let postView (blogPost: BlogPost) =
         let publicationDate =
@@ -132,7 +142,7 @@ module Templating =
                   str $"Last Updated On: {lastUpdated}"
               ]
               p [] [
-                  str $"Tags: {blogPost.Meta.Tags}"
+                  blogPost.Meta.Tags |> splitAndFormatTags
               ]
           ] ]
 
