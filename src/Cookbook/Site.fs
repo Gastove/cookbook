@@ -4,6 +4,10 @@ module Templating =
 
     open Giraffe.ViewEngine
 
+    open Cookbook.Common
+
+    let PostDateFormat = "dddd, MMMM d yyyy"
+
     let LinkedHome = a [ _href "/" ] [ str "$HOME" ]
     let LinkedBlog = a [ _href "/blog" ] [ str "blog" ]
 
@@ -98,9 +102,16 @@ module Templating =
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
+    let formatTag (tag: string) =
+        tag.Trim().Trim(':')
+        |> String.toTitleCase
+
     let postView (blogPost: BlogPost) =
         let publicationDate =
-            blogPost.Meta.PublicationDate.ToString("dddd, MMMM d yyyy")
+            blogPost.Meta.PublicationDate.ToString(PostDateFormat)
+
+        let lastUpdated =
+            blogPost.Meta.LastUpdated.ToString(PostDateFormat)
 
         [ div [ _class "post" ] [
             h2 [ _class "post-title" ] [
@@ -116,7 +127,9 @@ module Templating =
           ]
           div [ _class "post-info" ] [
               p [] [
-                  str $"Posted: {publicationDate}"
+                  str $"Originally Posted: {publicationDate}"
+                  br []
+                  str $"Last Updated On: {lastUpdated}"
               ]
               p [] [
                   str $"Tags: {blogPost.Meta.Tags}"
