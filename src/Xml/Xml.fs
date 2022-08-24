@@ -12,6 +12,7 @@ type PostMeta =
         </CATEGORIES>
         <SLUG>post-one</SLUG>
         <PUBLICATION_DATE>2017-09-24 15:26:01</PUBLICATION_DATE>
+        <LAST_UPDATED>2017-09-24 15:26:01</LAST_UPDATED>
         <TAGS>:live:</TAGS>
         <ITEM>Post One</ITEM>
         <SUMMARY>In this post, there will be the word, "Words", followed by a question mark.</SUMMARY>

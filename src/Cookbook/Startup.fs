@@ -7,14 +7,16 @@ module Server =
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Cors.Infrastructure
     open Microsoft.AspNetCore.Hosting
+    open Microsoft.Extensions.Configuration
     open Microsoft.Extensions.Hosting
     open Microsoft.Extensions.DependencyInjection
+    open Microsoft.Extensions.Logging
 
     open Giraffe
 
     open Prometheus
 
-    open Microsoft.Extensions.Logging
+
 
     // Google Cloud Run requires we respect the Port environment variable. I
     // can't find a satisfying way to configure that outside of code; the
@@ -60,11 +62,20 @@ module Server =
         |> ignore
 
     let configureServices (services: IServiceCollection) =
+        let sp = services.BuildServiceProvider()
+        let cfg = sp.GetService<IConfiguration>()
+        let env = sp.GetService<IWebHostEnvironment>()
+
+        services.Configure<CookbookConfig>(cfg.GetSection(CookbookConfig.CookbookConfig)) |> ignore
         services.AddCors() |> ignore
         services.AddGiraffe() |> ignore
         services.AddResponseCaching() |> ignore
         services.AddHealthChecks() |> ignore
-        services.AddSingleton<GCP.Storage.IStorageClient, GCP.Storage.StorageClient>() |> ignore
+
+        if env.IsDevelopment() then
+            services.AddSingleton<GCP.Storage.IStorageClient, Cookbook.Static.FileSystemStorageClient>() |> ignore
+        else
+            services.AddSingleton<GCP.Storage.IStorageClient, GCP.Storage.StorageClient>() |> ignore
 
     let configureApp (app: IApplicationBuilder) =
         let env =
