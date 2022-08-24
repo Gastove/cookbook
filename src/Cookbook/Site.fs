@@ -104,7 +104,7 @@ module Templating =
 
     let formatTag (tag: string) =
         tag.Trim().Trim(':')
-        |> String.toTitleCase
+        |> String.capitalizeFirst
 
     let postView (blogPost: BlogPost) =
         let publicationDate =
