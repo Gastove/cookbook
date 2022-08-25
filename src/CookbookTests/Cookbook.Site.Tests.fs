@@ -20,7 +20,15 @@ let templatingTests =
           testCase "Test Templating.splitAndFormatTags with one tag"
           <| fun _ ->
               let input = ":tag:"
-              let expected = div [] [ str "Tag" ]
+
+              let expected =
+                  div [] [
+                      str "Tags: "
+                      a [ _href "/blog/filter/tag/tag" ] [
+                          str "Tag "
+                      ]
+                  ]
+
               let got = input |> Templating.splitAndFormatTags
 
               Expect.equal got expected "We should be able to HTML-ize a single tag" ]

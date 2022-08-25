@@ -1,5 +1,7 @@
 namespace Cookbook
 
+// TODO[gastove|2022-08-25] Break this whole thing apart, it's getting very confusing.
+
 module Templating =
 
     open Giraffe.ViewEngine
@@ -102,10 +104,15 @@ module Templating =
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
+    // TODO[gastove|2022-08-24] Move this into XML or Blog or something -> this
+    // layer should be handed pre-parsed data.
     let cleanTag (tag: string) =
         tag.Trim().Trim(':') |> String.capitalizeFirst
 
-    let formatTag (tag: string) = str $"{tag}/ "
+    let formatTag (tag: string) =
+        a [ _href $"/blog/filter/tag/{tag.ToLower()}" ] [
+            str $"{tag} "
+        ]
 
     let splitAndFormatTags (tags: string) =
         let tags =
@@ -207,13 +214,67 @@ module Handlers =
                     | Error exn -> return (500, exn |> string) |> Error
                 }
 
+        [<RequireQualifiedAccess>]
+        type BlogFilter =
+            | Id
+            | Tag of string
+
+            static member Default = BlogFilter.Id
+
+            static member TryFromStringAndTerm (term: string option) (s: string) =
+                match s.ToLower(), term with
+                | "id", _ -> BlogFilter.Id |> Ok
+                | "tag", Some (t) -> t |> Tag |> Ok
+                | "tag", None ->
+                    "Can't filter by tag without a tag (term) specified"
+                    |> Error
+                | wrong -> $"Can't filter on {wrong}" |> Error
+
+        let filterBlogPosts (filter: BlogFilter) (posts: BlogPost array) =
+            let filterFn =
+                match filter with
+                | BlogFilter.Id -> fun _ -> true
+                | BlogFilter.Tag tag -> fun (bp: BlogPost) -> bp.Meta.Tags.Contains(tag)
+
+            posts |> Array.filter filterFn
+
+        let filteredBlogIndexContent
+            (filter: BlogFilter)
+            (client: GCP.Storage.IStorageClient)
+            (cfg: CookbookConfig)
+            logger
+            =
+            task {
+                let blogTitle = "gastove.com/blog"
+
+                let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
+
+                logger.Information("Filtering by {Filter}", filter)
+
+                let summaries =
+                    posts
+                    |> filterBlogPosts filter
+                    |> Array.sortByDescending Blog.projectPublicationDate
+                    |> Templating.postSummaries
+
+                let view =
+                    Templating.page blogTitle List.empty summaries
+
+                IndexHits.Inc()
+                return view |> HTMLView |> Ok
+            }
+
+
         let blogIndexContent (client: GCP.Storage.IStorageClient) (cfg: CookbookConfig) logger =
             task {
                 let blogTitle = "gastove.com/blog"
 
                 let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
 
-                let summaries = posts |> Templating.postSummaries
+                let summaries =
+                    posts
+                    |> Array.sortByDescending Blog.projectPublicationDate
+                    |> Templating.postSummaries
 
                 let view =
                     Templating.page blogTitle List.empty summaries
@@ -276,11 +337,16 @@ module Handlers =
                     return! ctx.WriteStringAsync errMsg
             })
 
-
     let pageHandler (slug: string) =
         slug |> Content.pageContent |> handlerMaker
 
     let blogIndexHandler () = handlerMaker Content.blogIndexContent
+
+    let filteredBlogIndexHandler (tag: string) =
+        tag
+        |> Content.BlogFilter.Tag
+        |> Content.filteredBlogIndexContent
+        |> handlerMaker
 
     let blogPostHandler (slug: string) =
         slug |> Content.blogPostContent |> handlerMaker
@@ -291,6 +357,9 @@ module Handlers =
         publicResponseCaching (oneHour.TotalSeconds |> int) None
 
     let cachingBlogIndexHandler () = cache >=> blogIndexHandler ()
+
+    let cachingFilteredBlogIndexHandler tag =
+        cache >=> (filteredBlogIndexHandler tag)
 
     let cachingFeedHandler () = cache >=> feedHandler ()
 
