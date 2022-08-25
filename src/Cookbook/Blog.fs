@@ -24,3 +24,8 @@ module Blog =
                 |> List.map Async.AwaitTask
                 |> Async.Parallel
         }
+
+    let projectPublicationDate (bp: BlogPost) = bp.Meta.PublicationDate
+
+    let hasTag (tag: string) (bp: BlogPost) =
+        bp.Meta.Tags.ToLower().Contains(tag.ToLower())
