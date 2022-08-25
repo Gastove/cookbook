@@ -1,5 +1,7 @@
 namespace Cookbook
 
+// TODO[gastove|2022-08-25] Break this whole thing apart, it's getting very confusing.
+
 module Templating =
 
     open Giraffe.ViewEngine
@@ -88,9 +90,22 @@ module Templating =
           ]
           hr [] ]
 
-    let postSummaries (posts: BlogPost array) =
+    let returnSnippet (tag: string) =
+        div [ _class "post-filter-return"] [
+            str $"└─ Currently showing posts tagged with: {tag |> String.capitalizeFirst} "
+            a [ _href "/blog" ] [
+                str "[clear filter]"
+            ]
+        ]
+
+    let postSummaries (currentTag: string option) (posts: BlogPost array) =
         let hdr =
             linkedTitle [ LinkedHome; LinkedBlog ] "index"
+
+        let returnToUnfiltered =
+            currentTag
+            |> Option.map (returnSnippet >> List.singleton)
+            |> Option.defaultValue List.empty
 
         let summaries =
             posts
@@ -98,13 +113,29 @@ module Templating =
             |> Array.map postSummary
             |> List.ofArray
 
-        hdr @ summaries @ [ hr [] ]
+        hdr @ returnToUnfiltered @ summaries @ [ hr [] ]
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
+    // TODO[gastove|2022-08-24] Move this into XML or Blog or something -> this
+    // layer should be handed pre-parsed data.
+    let cleanTag (tag: string) =
+        tag.Trim().Trim(':') |> String.capitalizeFirst
+
     let formatTag (tag: string) =
-        tag.Trim().Trim(':')
-        |> String.toTitleCase
+        a [ _href $"/blog/filter/tag/{tag.ToLower()}" ] [
+            str $"{tag}"
+        ]
+
+    let splitAndFormatTags (tags: string) =
+        let tags =
+            tags.Split([| ':' |])
+            |> List.ofArray
+            |> List.filter String.notNullOrWhiteSpace
+            |> List.map (cleanTag >> formatTag)
+            |> List.interpose (str " | ")
+
+        div [] (str "Tags: " :: tags)
 
     let postView (blogPost: BlogPost) =
         let publicationDate =
@@ -132,7 +163,7 @@ module Templating =
                   str $"Last Updated On: {lastUpdated}"
               ]
               p [] [
-                  str $"Tags: {blogPost.Meta.Tags}"
+                  blogPost.Meta.Tags |> splitAndFormatTags
               ]
           ] ]
 
@@ -197,13 +228,73 @@ module Handlers =
                     | Error exn -> return (500, exn |> string) |> Error
                 }
 
+        [<RequireQualifiedAccess>]
+        type BlogFilter =
+            | Id
+            | Tag of string
+
+            static member Default = BlogFilter.Id
+
+            static member TryFromStringAndTerm (term: string option) (s: string) =
+                match s.ToLower(), term with
+                | "id", _ -> BlogFilter.Id |> Ok
+                | "tag", Some (t) -> t |> Tag |> Ok
+                | "tag", None ->
+                    "Can't filter by tag without a tag (term) specified"
+                    |> Error
+                | wrong -> $"Can't filter on {wrong}" |> Error
+
+
+            member this.RenderForHTML() =
+                match this with
+                    | Id -> "all"
+                    | Tag s -> s
+
+        let filterBlogPosts (filter: BlogFilter) (posts: BlogPost array) =
+            let filterFn =
+                match filter with
+                | BlogFilter.Id -> fun _ -> true
+                | BlogFilter.Tag tag -> fun (bp: BlogPost) -> bp.Meta.Tags.Contains(tag)
+
+            posts |> Array.filter filterFn
+
+        let filteredBlogIndexContent
+            (filter: BlogFilter)
+            (client: GCP.Storage.IStorageClient)
+            (cfg: CookbookConfig)
+            logger
+            =
+            task {
+                let blogTitle = "gastove.com/blog"
+
+                let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
+
+                logger.Information("Filtering by {Filter}", filter)
+
+                let summaries =
+                    posts
+                    |> filterBlogPosts filter
+                    |> Array.sortByDescending Blog.projectPublicationDate
+                    |> Templating.postSummaries (filter.RenderForHTML() |> Some)
+
+                let view =
+                    Templating.page blogTitle List.empty summaries
+
+                IndexHits.Inc()
+                return view |> HTMLView |> Ok
+            }
+
+
         let blogIndexContent (client: GCP.Storage.IStorageClient) (cfg: CookbookConfig) logger =
             task {
                 let blogTitle = "gastove.com/blog"
 
                 let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
 
-                let summaries = posts |> Templating.postSummaries
+                let summaries =
+                    posts
+                    |> Array.sortByDescending Blog.projectPublicationDate
+                    |> Templating.postSummaries None
 
                 let view =
                     Templating.page blogTitle List.empty summaries
@@ -266,11 +357,16 @@ module Handlers =
                     return! ctx.WriteStringAsync errMsg
             })
 
-
     let pageHandler (slug: string) =
         slug |> Content.pageContent |> handlerMaker
 
     let blogIndexHandler () = handlerMaker Content.blogIndexContent
+
+    let filteredBlogIndexHandler (tag: string) =
+        tag
+        |> Content.BlogFilter.Tag
+        |> Content.filteredBlogIndexContent
+        |> handlerMaker
 
     let blogPostHandler (slug: string) =
         slug |> Content.blogPostContent |> handlerMaker
@@ -281,6 +377,9 @@ module Handlers =
         publicResponseCaching (oneHour.TotalSeconds |> int) None
 
     let cachingBlogIndexHandler () = cache >=> blogIndexHandler ()
+
+    let cachingFilteredBlogIndexHandler tag =
+        cache >=> (filteredBlogIndexHandler tag)
 
     let cachingFeedHandler () = cache >=> feedHandler ()
 

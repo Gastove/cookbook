@@ -85,6 +85,9 @@ body .content .page-title {
 body .content .post-title {
   font-size: 1.5em;
 }
+body .content .post-filter-return {
+  font-size: 0.85em;
+}
 body .content h1 {
   font-size: 1.75em;
   /* 150% size*/

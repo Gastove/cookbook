@@ -2,8 +2,28 @@ namespace Cookbook.Common
 
 module String =
 
-    let toTitleCase (s: string) =
+    let capitalizeFirst (s: string) =
         let start = s |> Seq.head |> System.Char.ToUpper
-        [| [|start|]; s |> Seq.toArray |> Array.tail |]
+
+        [| [| start |]
+           s |> Seq.toArray |> Array.tail |]
         |> Array.concat
         |> System.String
+
+    let isNullOrWhiteSpace = System.String.IsNullOrWhiteSpace
+    let notNullOrWhiteSpace = isNullOrWhiteSpace >> not
+
+
+module List =
+
+    let interpose (elem: 'T) (data: 'T list) =
+        let rec work remaining acc =
+            match remaining with
+            | head :: [] -> (head :: elem :: acc) |> List.rev
+            | head :: rest -> work rest (head :: elem :: acc)
+            | [] -> acc |> List.rev
+
+        match data with
+        | [] -> []
+        | _head :: [] -> data
+        | head :: rest -> work rest [ head ]

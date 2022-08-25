@@ -4,17 +4,20 @@ source https://nuget.org/api/v2
 storage:none
 
 nuget Destructurama.FSharp
-nuget Markdig
-nuget Serilog
-nuget Serilog.Sinks.Console
-nuget Serilog.AspNetCore
-nuget Serilog.Sinks.GoogleCloudLogging
 nuget Dropbox.Api
+nuget Expecto
 nuget FSharp.Core
 nuget FSharp.Data
-nuget Google.Cloud.Storage.V1
-nuget Microsoft.AspNetCore.All
 nuget Giraffe
 nuget Giraffe.ViewEngine
+nuget Google.Cloud.Storage.V1
+nuget Markdig
+nuget Microsoft.AspNetCore.All
+nuget Microsoft.NET.Test.Sdk
+nuget Serilog
+nuget Serilog.AspNetCore
+nuget Serilog.Sinks.Console
+nuget Serilog.Sinks.GoogleCloudLogging
+nuget YoloDev.Expecto.TestSdk
 nuget prometheus-net
 nuget prometheus-net.AspNetCore

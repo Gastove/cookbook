@@ -35,18 +35,24 @@ module Server =
             with
             | _ -> DefaultHttp
 
+    // TODO[gastove|2022-08-25] Move this into its own Thing, Startup is just... surprising
     let webApp =
         choose [ GET
                  >=> choose [ route "/feed/atom"
                               >=> Handlers.cachingFeedHandler ()
+
                               route "/blog"
                               >=> Handlers.cachingBlogIndexHandler ()
+
+                              routef "/blog/filter/tag/%s" Handlers.cachingFilteredBlogIndexHandler
+
                               routef "/blog/%s" Handlers.cachingBlogPostHandler
 
                               route "/" >=> Handlers.cachingPageHandler "welcome"
                               routef "/%s" Handlers.cachingPageHandler ]
                  setStatusCode 404 >=> text "Not Found" ]
 
+    // TODO[gastove|2022-08-25] Move this to handlers
     let errorHandler (ex: Exception) (logger: ILogger) =
         logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
 
