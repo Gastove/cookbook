@@ -90,9 +90,22 @@ module Templating =
           ]
           hr [] ]
 
-    let postSummaries (posts: BlogPost array) =
+    let returnSnippet (tag: string) =
+        div [ _class "post-filter-return"] [
+            str $"└─ Currently showing posts tagged with: {tag |> String.capitalizeFirst} "
+            a [ _href "/blog" ] [
+                str "[clear filter]"
+            ]
+        ]
+
+    let postSummaries (currentTag: string option) (posts: BlogPost array) =
         let hdr =
             linkedTitle [ LinkedHome; LinkedBlog ] "index"
+
+        let returnToUnfiltered =
+            currentTag
+            |> Option.map (returnSnippet >> List.singleton)
+            |> Option.defaultValue List.empty
 
         let summaries =
             posts
@@ -100,7 +113,7 @@ module Templating =
             |> Array.map postSummary
             |> List.ofArray
 
-        hdr @ summaries @ [ hr [] ]
+        hdr @ returnToUnfiltered @ summaries @ [ hr [] ]
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
@@ -111,7 +124,7 @@ module Templating =
 
     let formatTag (tag: string) =
         a [ _href $"/blog/filter/tag/{tag.ToLower()}" ] [
-            str $"{tag} "
+            str $"{tag}"
         ]
 
     let splitAndFormatTags (tags: string) =
@@ -120,6 +133,7 @@ module Templating =
             |> List.ofArray
             |> List.filter String.notNullOrWhiteSpace
             |> List.map (cleanTag >> formatTag)
+            |> List.interpose (str " | ")
 
         div [] (str "Tags: " :: tags)
 
@@ -230,6 +244,12 @@ module Handlers =
                     |> Error
                 | wrong -> $"Can't filter on {wrong}" |> Error
 
+
+            member this.RenderForHTML() =
+                match this with
+                    | Id -> "all"
+                    | Tag s -> s
+
         let filterBlogPosts (filter: BlogFilter) (posts: BlogPost array) =
             let filterFn =
                 match filter with
@@ -255,7 +275,7 @@ module Handlers =
                     posts
                     |> filterBlogPosts filter
                     |> Array.sortByDescending Blog.projectPublicationDate
-                    |> Templating.postSummaries
+                    |> Templating.postSummaries (filter.RenderForHTML() |> Some)
 
                 let view =
                     Templating.page blogTitle List.empty summaries
@@ -274,7 +294,7 @@ module Handlers =
                 let summaries =
                     posts
                     |> Array.sortByDescending Blog.projectPublicationDate
-                    |> Templating.postSummaries
+                    |> Templating.postSummaries None
 
                 let view =
                     Templating.page blogTitle List.empty summaries
