@@ -63,10 +63,10 @@ type Media =
 
 
 type IStorageClient =
-    abstract Get : string -> string -> ILogger -> Task<string>
-    abstract GetStream : string -> string -> ILogger -> Task<IO.Stream>
-    abstract Put : string -> string -> Media -> ILogger -> Task<string>
-    abstract List : string -> string -> ILogger -> Task<string list>
+    abstract Get : string -> string -> Task<string>
+    abstract GetStream : string -> string -> Task<IO.Stream>
+    abstract Put : string -> string -> Media -> Task<string>
+    abstract List : string -> string -> Task<string list>
     abstract TryExists : string -> string -> Task<Result<unit, exn>>
 
 module Storage =
@@ -77,10 +77,12 @@ module Storage =
     open Google.Apis.Upload
     open Google.Apis.Download
 
-    type GcsStorageClient() =
+    open Microsoft.Extensions.Caching.Memory
+
+    type GcsStorageClient(logger: ILogger) =
         let Client = V1.StorageClient.Create()
 
-        member __.DownloadProgress fileName (logger: ILogger) =
+        member __.DownloadProgress fileName =
             System.Progress<IDownloadProgress> (fun p ->
                 logger.Information(
                     "Downloading {FileName}; wrote {BytesDownloaded}, status: {Status}",
@@ -89,7 +91,7 @@ module Storage =
                     p.Status
                 ))
 
-        member __.UploadProgress file (logger: ILogger) =
+        member __.UploadProgress file =
             System.Progress<IUploadProgress> (fun p ->
                 logger.Information(
                     "Uploading {FileName}; wrote {BytesSent}, status: {Status}",
@@ -99,7 +101,7 @@ module Storage =
                 ))
 
         interface IStorageClient with
-            member this.Put bucket prefix (file: Media) (logger: ILogger) =
+            member this.Put bucket prefix (file: Media) =
                 let acl =
                     Some(V1.PredefinedObjectAcl.PublicRead)
                     |> Option.toNullable
@@ -117,22 +119,22 @@ module Storage =
                             contentType = file.MediaType,
                             source = file.Body,
                             options = options,
-                            progress = (this.UploadProgress file logger)
+                            progress = (this.UploadProgress file)
                         )
 
                     return obj.MediaLink
                 }
 
-            member this.Get (bucket: string) (path: string) (logger: ILogger) : Task<string> =
+            member this.Get (bucket: string) (path: string) : Task<string> =
                 task {
-                    let! stream = (this :> IStorageClient).GetStream bucket path logger
+                    let! stream = (this :> IStorageClient).GetStream bucket path
                     use reader = new IO.StreamReader(stream)
                     let! content = reader.ReadToEndAsync()
                     logger.Information("Downloaded string of length {Length}", content.Length)
                     return content
                 }
 
-            member this.GetStream (bucket: string) (path: string) (logger: ILogger) : Task<IO.Stream> =
+            member this.GetStream (bucket: string) (path: string) : Task<IO.Stream> =
                 task {
                     let stream =
                         new IO.BufferedStream(new IO.MemoryStream()) :> IO.Stream
@@ -147,14 +149,14 @@ module Storage =
                             stream,
                             null,
                             token,
-                            (this.DownloadProgress $"{bucket}/{path}" logger)
+                            (this.DownloadProgress $"{bucket}/{path}")
                         )
 
                     stream.Seek(0, IO.SeekOrigin.Begin) |> ignore
                     return stream
                 }
 
-            member __.List (bucket: string) (prefix: string) (logger: ILogger) : Task<string list> =
+            member __.List (bucket: string) (prefix: string) : Task<string list> =
                 task {
                     let contents = Client.ListObjectsAsync(bucket, prefix)
 
@@ -190,13 +192,11 @@ module Storage =
                     | exn -> return exn |> Error
                 }
 
-
-
     exception FileNotExists of string
 
-    type FileSystemStorageClient() =
+    type FileSystemStorageClient(logger: ILogger) =
         interface IStorageClient with
-            member _.Get (folder: string) (path: string) (logger: ILogger) : Task<string> =
+            member _.Get (folder: string) (path: string): Task<string> =
                 logger.Information("Trying to load {Path}", $"{folder}/{path}")
 
                 task {
@@ -210,11 +210,10 @@ module Storage =
             member _.GetStream
                 (folder: string)
                 (path: string)
-                (_logger: ILogger)
                 : System.Threading.Tasks.Task<System.IO.Stream> =
                 task { return IO.File.Open($"{folder}/{path}", IO.FileMode.Open) }
 
-            member _.List (folder: string) (path: string) (_: ILogger) : Task<string list> =
+            member _.List (folder: string) (path: string) : Task<string list> =
                 task {
                     return
                         $"{folder}/{path}"
@@ -227,7 +226,6 @@ module Storage =
                 (folder: string)
                 (path: string)
                 (media: Media)
-                (_: ILogger)
                 : System.Threading.Tasks.Task<string> =
                 task {
                     let filePath = $"{folder}/{path}/{media.FileName}"

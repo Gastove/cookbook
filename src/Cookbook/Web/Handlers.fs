@@ -35,7 +35,7 @@ module Handlers =
             let _memCache = ctx.GetService<IMemoryCache>()
 
             task {
-                let! result = func storageClient cfg Log.Logger
+                let! result = func storageClient cfg
 
                 match result with
                 | Ok content ->

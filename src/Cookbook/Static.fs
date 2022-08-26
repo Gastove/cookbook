@@ -68,7 +68,7 @@ module Static =
                 upload.Prefix
             )
 
-            client.Put upload.Config.StaticAssetsBucket upload.Prefix upload.Media logger
+            client.Put upload.Config.StaticAssetsBucket upload.Prefix upload.Media
 
         let createIndex (fileNames: string seq) (cfg: CookbookConfig) =
             fileNames

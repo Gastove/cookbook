@@ -3,14 +3,13 @@ namespace Cookbook
 module HomePage =
 
     open Markdig
-    open Serilog
 
     let markdownParser =
         MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
             .Build()
 
-    let tryLoadContent folder slug (client: IStorageClient) (logger: ILogger) =
+    let tryLoadContent folder slug (client: IStorageClient) =
         task {
 
             let! exists = client.TryExists folder slug
@@ -21,7 +20,7 @@ module HomePage =
             match exists with
             | Ok (_) ->
 
-                let! contents = client.Get folder slug logger
+                let! contents = client.Get folder slug
 
                 return Markdown.ToHtml(contents, markdownParser) |> Ok
             | Error (exn) -> return exn |> Error
