@@ -12,6 +12,7 @@
         <Compile Include="HomePage.fs"/>
         <Compile Include="Config.fs" />
         <Compile Include="Static.fs" />
+        <Compile Include="Storage.fs"/>
         <Compile Include="Web\Templating.fs"/>
         <Compile Include="Web\Content.fs"/>
         <Compile Include="Web\Handlers.fs"/>

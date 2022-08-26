@@ -80,11 +80,12 @@ module Server =
         services.AddGiraffe() |> ignore
         services.AddResponseCaching() |> ignore
         services.AddHealthChecks() |> ignore
+        services.AddMemoryCache() |> ignore
 
         if env.IsDevelopment() then
             services.AddSingleton<GCP.Storage.IStorageClient, Cookbook.Static.FileSystemStorageClient>() |> ignore
         else
-            services.AddSingleton<GCP.Storage.IStorageClient, GCP.Storage.StorageClient>() |> ignore
+            services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.GcsStorageClient>() |> ignore
 
     let configureApp (app: IApplicationBuilder) =
         let env =
