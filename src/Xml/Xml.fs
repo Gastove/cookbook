@@ -26,7 +26,6 @@ type BlogPost =
       Raw: string
       Meta: PostMeta.PostMeta }
 
-
 module Xml =
 
     open System

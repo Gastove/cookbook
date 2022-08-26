@@ -9,7 +9,7 @@
 
     <ItemGroup>
         <Compile Include="Cookbook.Common.Tests.fs"/>
-        <Compile Include="Cookbook.Site.Tests.fs"/>
+        <Compile Include="Cookbook.Web.Tests.fs"/>
         <Compile Include="Main.fs" />
     </ItemGroup>
 

@@ -1,9 +1,9 @@
-module Cookbook.Site.Tests
+module Cookbook.Web.Tests
 
 open Expecto
 open Giraffe.ViewEngine
 
-open Cookbook
+open Cookbook.Web
 
 [<Tests>]
 let templatingTests =
