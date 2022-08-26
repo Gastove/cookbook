@@ -15,7 +15,7 @@ module Content =
 
     type ContentResponse = Result<Content, int * string>
 
-    type ContentFunc = GCP.Storage.IStorageClient -> CookbookConfig -> ILogger -> Task<ContentResponse>
+    type ContentFunc = IStorageClient -> CookbookConfig -> ILogger -> Task<ContentResponse>
 
     let pageContent (slug: string) =
         fun client (cfg: CookbookConfig) logger ->
@@ -68,7 +68,7 @@ module Content =
 
     let filteredBlogIndexContent
         (filter: BlogFilter)
-        (client: GCP.Storage.IStorageClient)
+        (client: IStorageClient)
         (cfg: CookbookConfig)
         logger
         =
@@ -92,7 +92,7 @@ module Content =
         }
 
 
-    let blogIndexContent (client: GCP.Storage.IStorageClient) (cfg: CookbookConfig) logger =
+    let blogIndexContent (client: IStorageClient) (cfg: CookbookConfig) logger =
         task {
             let blogTitle = "gastove.com/blog"
 

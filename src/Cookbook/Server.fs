@@ -83,7 +83,7 @@ module Server =
         services.AddMemoryCache() |> ignore
 
         if env.IsDevelopment() then
-            services.AddSingleton<GCP.Storage.IStorageClient, Cookbook.Static.FileSystemStorageClient>() |> ignore
+            services.AddSingleton<IStorageClient, Cookbook.Storage.FileSystemStorageClient>() |> ignore
         else
             services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.GcsStorageClient>() |> ignore
 

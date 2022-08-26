@@ -10,7 +10,7 @@ module HomePage =
             .UseAdvancedExtensions()
             .Build()
 
-    let tryLoadContent folder slug (client: GCP.Storage.IStorageClient) (logger: ILogger) =
+    let tryLoadContent folder slug (client: IStorageClient) (logger: ILogger) =
         task {
 
             let! exists = client.TryExists folder slug

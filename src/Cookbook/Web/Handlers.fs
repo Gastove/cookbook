@@ -30,7 +30,7 @@ module Handlers =
                 ctx.GetService<IOptions<CookbookConfig>>().Value
 
             let storageClient =
-                ctx.GetService<GCP.Storage.IStorageClient>()
+                ctx.GetService<IStorageClient>()
 
             let _memCache = ctx.GetService<IMemoryCache>()
 

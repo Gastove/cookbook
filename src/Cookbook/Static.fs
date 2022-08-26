@@ -7,64 +7,7 @@ module Static =
 
     open Serilog
 
-    exception FileNotExists of string
-
-    type FileSystemStorageClient() =
-        interface GCP.Storage.IStorageClient with
-            member _.Get (folder: string) (path: string) (logger: ILogger) : Task<string> =
-                logger.Information("Trying to load {Path}", $"{folder}/{path}")
-                task {
-                    return!
-                        IO
-                            .File
-                            .OpenText($"{folder}/{path}")
-                            .ReadToEndAsync()
-                }
-
-            member _.GetStream
-                (folder: string)
-                (path: string)
-                (_logger: ILogger)
-                : System.Threading.Tasks.Task<System.IO.Stream> =
-                task { return IO.File.Open($"{folder}/{path}", IO.FileMode.Open) }
-
-            member _.List (folder: string) (path: string) (_: ILogger) : Task<string list> =
-                task {
-                    return
-                        $"{folder}/{path}"
-                        |> IO.Directory.EnumerateFiles
-                        |> Seq.map (IO.Path.GetFileName>>(sprintf "%s/%s" path))
-                        |> Seq.toList
-                }
-
-            member _.Put
-                (folder: string)
-                (path: string)
-                (media: GCP.Media)
-                (_: ILogger)
-                : System.Threading.Tasks.Task<string> =
-                task {
-                    let filePath = $"{folder}/{path}/{media.FileName}"
-                    let handle = IO.File.OpenWrite(filePath)
-                    do! media.Body.CopyToAsync(handle)
-                    return filePath
-                }
-
-            member _.TryExists (folder: string) (path: string) : Task<Result<unit, exn>> =
-                Log.Information("Trying to load {Path}", $"{folder}/{path}")
-                task {
-                    let path = $"{folder}/{path}"
-
-                    if path |> IO.File.Exists then
-                        return () |> Ok
-                    else
-                        return path |> FileNotExists |> Error
-                }
-
-
     module Media =
-
-        open Cookbook.GCP
 
         type Upload =
             { Media: Media
@@ -117,7 +60,7 @@ module Static =
                 ]
 
 
-        let uploadAsync (client: GCP.Storage.IStorageClient) (upload: Media.Upload) (logger: ILogger) =
+        let uploadAsync (client: IStorageClient) (upload: Media.Upload) (logger: ILogger) =
             logger.Information(
                 "Uploading file {name} to {bucket}/{prefix}",
                 upload.Media.FileName,
@@ -140,7 +83,7 @@ module Static =
             let index = createIndex fileNames cfg
             let indexStream = new System.IO.MemoryStream(index)
 
-            Cookbook.GCP.Media.Create "index.html" indexStream
+            Media.Create "index.html" indexStream
             |> Result.map (fun media -> Media.Upload.Create media cfg "gifs")
             |> Result.map (fun upload -> uploadAsync client upload logger)
 
@@ -235,8 +178,6 @@ module Static =
     //     | _, Error (gcpError) -> gcpError.Message |> GCPClientError |> Error
 
     module Markdown =
-
-        open System
 
         let parse (content: string) = Markdig.Markdown.ToHtml(content)
 

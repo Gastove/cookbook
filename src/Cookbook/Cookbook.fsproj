@@ -8,11 +8,11 @@
     <ItemGroup>
         <Compile Include="Common.fs"/>
         <Compile Include="Logging.fs" />
+        <Compile Include="Config.fs" />
+        <Compile Include="Storage.fs"/>
         <Compile Include="Blog.fs" />
         <Compile Include="HomePage.fs"/>
-        <Compile Include="Config.fs" />
         <Compile Include="Static.fs" />
-        <Compile Include="Storage.fs"/>
         <Compile Include="Web\Templating.fs"/>
         <Compile Include="Web\Content.fs"/>
         <Compile Include="Web\Handlers.fs"/>
@@ -21,7 +21,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Xml\Xml.fsproj" />
-        <ProjectReference Include="..\GCP\GCP.fsproj" />
     </ItemGroup>
 
     <Import Project="..\..\.paket\Paket.Restore.targets" />
