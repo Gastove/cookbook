@@ -245,3 +245,28 @@ module Storage =
                     else
                         return path |> FileNotExists |> Error
                 }
+
+    type CachingGcsStorageClient(memoryCache: IMemoryCache, logger: ILogger) =
+        let GCSClient = GcsStorageClient(logger) :> IStorageClient
+
+        interface IStorageClient with
+            member _.Get (bucket: string) (path: string) : Task<string> =
+                memoryCache.GetOrCreateAsync(
+                    $"{bucket}/{path}",
+                    (fun entry ->
+                        logger.Information("Failed to find {Path} in the cache, fetching", $"{bucket}/{path}")
+                        entry.SlidingExpiration <- TimeSpan.FromMinutes(15)
+                        GCSClient.Get bucket path)
+                )
+
+            member _.GetStream (bucket: string) (path: string) : Task<IO.Stream> =
+                GCSClient.GetStream bucket path
+
+            member _.List (bucket: string) (prefix: string) : Task<string list> =
+                GCSClient.List bucket prefix
+
+            member _.Put (bucket: string) (prefix: string) (media: Media): Task<string> =
+                GCSClient.Put bucket prefix media
+
+            member _.TryExists (bucket: string) (path: string) : Task<Result<unit, exn>> =
+                GCSClient.TryExists bucket path

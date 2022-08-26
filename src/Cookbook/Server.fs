@@ -85,7 +85,7 @@ module Server =
         if env.IsDevelopment() then
             services.AddSingleton<IStorageClient, Cookbook.Storage.FileSystemStorageClient>() |> ignore
         else
-            services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.GcsStorageClient>() |> ignore
+            services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.CachingGcsStorageClient>() |> ignore
 
     let configureApp (app: IApplicationBuilder) =
         let env =
