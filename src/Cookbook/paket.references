@@ -3,6 +3,7 @@ Dropbox.Api
 FSharp.Core
 Giraffe
 Giraffe.ViewEngine
+Google.Cloud.Storage.V1
 Markdig
 Serilog
 Serilog.AspNetCore

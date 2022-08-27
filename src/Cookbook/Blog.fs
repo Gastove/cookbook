@@ -2,24 +2,24 @@ namespace Cookbook
 
 module Blog =
 
-    let loadPost folder slug (client: GCP.Storage.IStorageClient) (logger: Serilog.ILogger) =
+    let loadPost folder slug (client: IStorageClient) =
         task {
-            let! stream = client.GetStream folder slug logger
+            let! stream = client.GetStream folder slug
 
             return Xml.readPostAndParse stream
         }
 
-    let loadAllPosts bucket subPath (client: GCP.Storage.IStorageClient) (logger: Serilog.ILogger) =
+    let loadAllPosts bucket subPath (client: IStorageClient) =
         task {
-            let! files = client.List bucket subPath logger
+            let! files = client.List bucket subPath
 
             return!
                 files
                 |> List.map (fun fileName ->
                     task {
-                        let! stream = client.GetStream bucket fileName logger
+                        let! content = client.Get bucket fileName
 
-                        return Xml.readPostAndParse stream
+                        return Xml.parsePost content
                     })
                 |> List.map Async.AwaitTask
                 |> Async.Parallel

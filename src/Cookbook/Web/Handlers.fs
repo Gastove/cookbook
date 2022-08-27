@@ -7,6 +7,7 @@ module Handlers =
     open Serilog
 
     open Microsoft.Extensions.Options
+    open Microsoft.Extensions.Caching.Memory
 
     open Cookbook
 
@@ -23,18 +24,18 @@ module Handlers =
     // Caching TTL
     let oneHour = System.TimeSpan.FromHours(1)
 
-
-
     let handlerMaker (func: Content.ContentFunc) =
         handleContext (fun ctx ->
             let cfg =
                 ctx.GetService<IOptions<CookbookConfig>>().Value
 
             let storageClient =
-                ctx.GetService<GCP.Storage.IStorageClient>()
+                ctx.GetService<IStorageClient>()
+
+            let _memCache = ctx.GetService<IMemoryCache>()
 
             task {
-                let! result = func storageClient cfg Log.Logger
+                let! result = func storageClient cfg
 
                 match result with
                 | Ok content ->

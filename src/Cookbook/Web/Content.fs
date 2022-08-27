@@ -15,13 +15,13 @@ module Content =
 
     type ContentResponse = Result<Content, int * string>
 
-    type ContentFunc = GCP.Storage.IStorageClient -> CookbookConfig -> ILogger -> Task<ContentResponse>
+    type ContentFunc = IStorageClient -> CookbookConfig -> Task<ContentResponse>
 
     let pageContent (slug: string) =
-        fun client (cfg: CookbookConfig) logger ->
+        fun client (cfg: CookbookConfig) ->
             task {
                 let! maybeContents =
-                    HomePage.tryLoadContent cfg.StaticAssetsBucket $"{cfg.PagesDir}/{slug}.markdown" client logger
+                    HomePage.tryLoadContent cfg.StaticAssetsBucket $"{cfg.PagesDir}/{slug}.markdown" client
 
                 match maybeContents with
                 | Ok contents ->
@@ -68,16 +68,15 @@ module Content =
 
     let filteredBlogIndexContent
         (filter: BlogFilter)
-        (client: GCP.Storage.IStorageClient)
+        (client: IStorageClient)
         (cfg: CookbookConfig)
-        logger
         =
         task {
             let blogTitle = "gastove.com/blog"
 
-            let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
+            let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client
 
-            logger.Information("Filtering by {Filter}", filter)
+            Log.Information("Filtering by {Filter}", filter)
 
             let summaries =
                 posts
@@ -92,11 +91,11 @@ module Content =
         }
 
 
-    let blogIndexContent (client: GCP.Storage.IStorageClient) (cfg: CookbookConfig) logger =
+    let blogIndexContent (client: IStorageClient) (cfg: CookbookConfig) =
         task {
             let blogTitle = "gastove.com/blog"
 
-            let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
+            let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client
 
             let summaries =
                 posts
@@ -110,12 +109,12 @@ module Content =
         }
 
     let blogPostContent (slug: string) =
-        fun client (cfg: CookbookConfig) logger ->
+        fun client (cfg: CookbookConfig) ->
             task {
                 let blogTitle = "gastove.com/blog"
                 let postFile = $"{slug}.html"
 
-                let! post = Blog.loadPost cfg.StaticAssetsBucket $"{cfg.BlogDir}/{postFile}" client logger
+                let! post = Blog.loadPost cfg.StaticAssetsBucket $"{cfg.BlogDir}/{postFile}" client
 
                 let postPage = post |> Templating.postView
 
@@ -125,9 +124,9 @@ module Content =
                 return view |> HTMLView |> Ok
             }
 
-    let feedContent client (cfg: CookbookConfig) logger =
+    let feedContent client (cfg: CookbookConfig) =
         task {
-            let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client logger
+            let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client
 
             let feed = Feed.formatFeed <| List.ofArray posts
 

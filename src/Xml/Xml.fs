@@ -54,6 +54,14 @@ module Xml =
           Raw = post
           Meta = meta }
 
+    let parsePost (post: string) =
+        let (post, meta) = separatePostAndMeta post
+
+        { Body = post
+          Title = meta.Title
+          Raw = post
+          Meta = meta }
+
     let readPostAndParseAsync (stream: IO.Stream) =
         task {
             use reader = new IO.StreamReader(stream)
@@ -62,7 +70,6 @@ module Xml =
 
             return separatePostAndMeta contents
         }
-
 
 module Feed =
 
