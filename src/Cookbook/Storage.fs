@@ -130,7 +130,6 @@ module Storage =
                     let! stream = (this :> IStorageClient).GetStream bucket path
                     use reader = new IO.StreamReader(stream)
                     let! content = reader.ReadToEndAsync()
-                    logger.Information("Downloaded string of length {Length}", content.Length)
                     return content
                 }
 
@@ -196,7 +195,7 @@ module Storage =
 
     type FileSystemStorageClient(logger: ILogger) =
         interface IStorageClient with
-            member _.Get (folder: string) (path: string): Task<string> =
+            member _.Get (folder: string) (path: string) : Task<string> =
                 logger.Information("Trying to load {Path}", $"{folder}/{path}")
 
                 task {
@@ -207,10 +206,7 @@ module Storage =
                             .ReadToEndAsync()
                 }
 
-            member _.GetStream
-                (folder: string)
-                (path: string)
-                : System.Threading.Tasks.Task<System.IO.Stream> =
+            member _.GetStream (folder: string) (path: string) : System.Threading.Tasks.Task<System.IO.Stream> =
                 task { return IO.File.Open($"{folder}/{path}", IO.FileMode.Open) }
 
             member _.List (folder: string) (path: string) : Task<string list> =
@@ -222,11 +218,7 @@ module Storage =
                         |> Seq.toList
                 }
 
-            member _.Put
-                (folder: string)
-                (path: string)
-                (media: Media)
-                : System.Threading.Tasks.Task<string> =
+            member _.Put (folder: string) (path: string) (media: Media) : System.Threading.Tasks.Task<string> =
                 task {
                     let filePath = $"{folder}/{path}/{media.FileName}"
                     let handle = IO.File.OpenWrite(filePath)
@@ -247,7 +239,8 @@ module Storage =
                 }
 
     type CachingGcsStorageClient(memoryCache: IMemoryCache, logger: ILogger) =
-        let GCSClient = GcsStorageClient(logger) :> IStorageClient
+        let GCSClient =
+            GcsStorageClient(logger) :> IStorageClient
 
         interface IStorageClient with
             member _.Get (bucket: string) (path: string) : Task<string> =
@@ -259,13 +252,11 @@ module Storage =
                         GCSClient.Get bucket path)
                 )
 
-            member _.GetStream (bucket: string) (path: string) : Task<IO.Stream> =
-                GCSClient.GetStream bucket path
+            member _.GetStream (bucket: string) (path: string) : Task<IO.Stream> = GCSClient.GetStream bucket path
 
-            member _.List (bucket: string) (prefix: string) : Task<string list> =
-                GCSClient.List bucket prefix
+            member _.List (bucket: string) (prefix: string) : Task<string list> = GCSClient.List bucket prefix
 
-            member _.Put (bucket: string) (prefix: string) (media: Media): Task<string> =
+            member _.Put (bucket: string) (prefix: string) (media: Media) : Task<string> =
                 GCSClient.Put bucket prefix media
 
             member _.TryExists (bucket: string) (path: string) : Task<Result<unit, exn>> =
