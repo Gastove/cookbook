@@ -17,9 +17,9 @@ module Blog =
                 files
                 |> List.map (fun fileName ->
                     task {
-                        let! stream = client.GetStream bucket fileName
+                        let! content = client.Get bucket fileName
 
-                        return Xml.readPostAndParse stream
+                        return Xml.parsePost content
                     })
                 |> List.map Async.AwaitTask
                 |> Async.Parallel
