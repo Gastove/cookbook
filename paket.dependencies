@@ -18,6 +18,8 @@ nuget Serilog
 nuget Serilog.AspNetCore
 nuget Serilog.Sinks.Console
 nuget Serilog.Sinks.GoogleCloudLogging
+nuget Thoth.Json
+nuget Thoth.Json.Net
 nuget YoloDev.Expecto.TestSdk
 nuget prometheus-net
 nuget prometheus-net.AspNetCore
