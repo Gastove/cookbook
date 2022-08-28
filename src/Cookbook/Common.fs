@@ -27,3 +27,14 @@ module List =
         | [] -> []
         | _head :: [] -> data
         | head :: rest -> work rest [ head ]
+
+module Result =
+    let gather (results: Result<'T, 'E> seq) =
+        let rec work remaining acc =
+            match remaining with
+                | [] -> acc |> List.rev |> Ok
+                | res :: rest ->
+                    res
+                    |> Result.bind (fun ok -> work rest (ok :: acc))
+
+        work (results |> Seq.toList) []
