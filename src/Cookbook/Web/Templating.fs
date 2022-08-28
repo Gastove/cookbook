@@ -94,10 +94,10 @@ module Templating =
         |> List.map (fun tag -> a [ _href $"/blog/filter/tag/{tag}"] [ tag |> String.capitalizeFirst |> str ])
         |> List.interpose (str " | ")
         |> List.append [ str "└─ See only posts tagged with: " ]
-        |> div []
+        |> div [ _class "post-filter-subtext"]
 
     let returnSnippet (tag: string) =
-        div [ _class "post-filter-return" ] [
+        div [ _class "post-filter-subtext" ] [
             str $"└─ Currently showing posts tagged with: {tag |> String.capitalizeFirst} "
             a [ _href "/blog" ] [
                 str "[clear filter]"

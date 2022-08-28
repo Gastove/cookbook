@@ -71,7 +71,11 @@ module Content =
     let loadTags (client: IStorageClient) (cfg: CookbookConfig) =
         task {
             let! tagsJson = client.Get cfg.StaticAssetsBucket $"{cfg.BlogDir}/tags-manifest.json"
-            let tagsManifest = tagsJson |> Decode.fromString (Decode.field "tags" (Decode.list Decode.string))
+
+            let tagsManifest =
+                tagsJson
+                |> Decode.fromString (Decode.field "tags" (Decode.list Decode.string))
+                |> Result.map (List.filter (fun tag -> tag <> "live"))
             return tagsManifest
         }
 
@@ -85,7 +89,7 @@ module Content =
 
             let! tagsManifest = loadTags client cfg
 
-            match (postResult |> Result.gather, tagsManifest)  with
+            match (postResult |> Result.gather, tagsManifest) with
             | Ok posts, Ok allTags ->
                 let summaries =
                     posts
@@ -110,6 +114,7 @@ module Content =
             let! postResult = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client
 
             let! tagsManifest = loadTags client cfg
+
             match (postResult |> Result.gather, tagsManifest) with
             | Ok posts, Ok allTags ->
                 let summaries =
