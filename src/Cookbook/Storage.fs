@@ -246,7 +246,7 @@ module Storage =
                     $"{bucket}/{path}",
                     (fun entry ->
                         logger.Information("Failed to find {Path} in the cache, fetching", $"{bucket}/{path}")
-                        entry.SlidingExpiration <- TimeSpan.FromMinutes(15)
+                        entry.AbsoluteExpirationRelativeToNow <- TimeSpan.FromMinutes(15)
                         GCSClient.Get bucket path)
                 )
 
