@@ -78,11 +78,13 @@ module Content =
 
             Log.Information("Filtering by {Filter}", filter)
 
+            let allTags = ["live"; "food"]
+
             let summaries =
                 posts
                 |> filterBlogPosts filter
                 |> Array.sortByDescending Blog.projectPublicationDate
-                |> Templating.postSummaries (filter.RenderForHTML() |> Some)
+                |> Templating.postSummaries (filter.RenderForHTML() |> Some) allTags
 
             let view =
                 Templating.page blogTitle List.empty summaries
@@ -97,13 +99,14 @@ module Content =
 
             let! posts = Blog.loadAllPosts cfg.StaticAssetsBucket cfg.BlogDir client
 
+            let allTags = ["live"; "food"]
+
             let summaries =
                 posts
                 |> Array.sortByDescending Blog.projectPublicationDate
-                |> Templating.postSummaries None
+                |> Templating.postSummaries None allTags
 
-            let view =
-                Templating.page blogTitle List.empty summaries
+            let view = Templating.page blogTitle List.empty summaries
 
             return view |> HTMLView |> Ok
         }
