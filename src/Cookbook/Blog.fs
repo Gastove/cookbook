@@ -15,12 +15,15 @@ module Blog =
 
             return!
                 files
-                |> List.map (fun fileName ->
-                    task {
-                        let! content = client.Get bucket fileName
+                |> List.choose (fun fileName ->
+                    match System.IO.Path.GetExtension fileName with
+                    | ".html" ->
+                        task {
+                            let! content = client.Get bucket fileName
 
-                        return Xml.parsePost content
-                    })
+                            return Xml.parsePost content
+                        } |> Some
+                    | _ -> None)
                 |> List.map Async.AwaitTask
                 |> Async.Parallel
         }

@@ -9,5 +9,7 @@ Serilog
 Serilog.AspNetCore
 Serilog.Sinks.Console
 Serilog.Sinks.GoogleCloudLogging
+Thoth.Json
+Thoth.Json.Net
 prometheus-net
 prometheus-net.AspNetCore

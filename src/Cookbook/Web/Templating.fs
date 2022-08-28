@@ -89,15 +89,22 @@ module Templating =
           ]
           hr [] ]
 
+    let tagSelector (tags: string list) =
+        tags
+        |> List.map (fun tag -> a [ _href $"/blog/filter/tag/{tag}"] [ tag |> String.capitalizeFirst |> str ])
+        |> List.interpose (str " | ")
+        |> List.append [ str "└─ See only posts tagged with: " ]
+        |> div [ _class "post-filter-subtext"]
+
     let returnSnippet (tag: string) =
-        div [ _class "post-filter-return"] [
+        div [ _class "post-filter-subtext" ] [
             str $"└─ Currently showing posts tagged with: {tag |> String.capitalizeFirst} "
             a [ _href "/blog" ] [
                 str "[clear filter]"
             ]
         ]
 
-    let postSummaries (currentTag: string option) (posts: BlogPost array) =
+    let postSummaries (currentTag: string option) (allTags: string list) (posts: BlogPost array) =
         let hdr =
             linkedTitle [ LinkedHome; LinkedBlog ] "index"
 
@@ -112,7 +119,9 @@ module Templating =
             |> Array.map postSummary
             |> List.ofArray
 
-        hdr @ returnToUnfiltered @ summaries @ [ hr [] ]
+        let tagLinks = allTags |> tagSelector
+
+        hdr @ [ tagLinks ] @ returnToUnfiltered @ summaries @ [ hr [] ]
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 

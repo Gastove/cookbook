@@ -42,25 +42,33 @@ module Xml =
         let post = doc.[0..(startIdx - 1)]
         let metaStr = doc.[startIdx..(endIdx + endTag.Length)]
 
-        (post, PostMeta.Parse(metaStr))
+        // TODO[gastove|2022-08-27] Gotta wrap Parse in a try/catch, that sucker
+        // detonates gracelessly.
+
+        try
+            let parsed = PostMeta.Parse(metaStr)
+            (post, parsed) |> Ok
+        with
+        | exn -> exn |> Error
 
     let readPostAndParse (stream: IO.Stream) =
         use reader = new IO.StreamReader(stream)
         let contents = reader.ReadToEnd()
-        let (post, meta) = separatePostAndMeta contents
 
-        { Body = post
-          Title = meta.Title
-          Raw = post
-          Meta = meta }
+        separatePostAndMeta contents
+        |> Result.map (fun (post, meta) ->
+            { Body = post
+              Title = meta.Title
+              Raw = post
+              Meta = meta })
 
     let parsePost (post: string) =
-        let (post, meta) = separatePostAndMeta post
-
-        { Body = post
-          Title = meta.Title
-          Raw = post
-          Meta = meta }
+        separatePostAndMeta post
+        |> Result.map (fun (post, meta) ->
+            { Body = post
+              Title = meta.Title
+              Raw = post
+              Meta = meta })
 
     let readPostAndParseAsync (stream: IO.Stream) =
         task {

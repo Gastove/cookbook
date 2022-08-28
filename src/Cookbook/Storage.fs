@@ -128,6 +128,7 @@ module Storage =
             member this.Get (bucket: string) (path: string) : Task<string> =
                 task {
                     let! stream = (this :> IStorageClient).GetStream bucket path
+                    use stream = stream
                     use reader = new IO.StreamReader(stream)
                     let! content = reader.ReadToEndAsync()
                     return content
@@ -199,11 +200,8 @@ module Storage =
                 logger.Information("Trying to load {Path}", $"{folder}/{path}")
 
                 task {
-                    return!
-                        IO
-                            .File
-                            .OpenText($"{folder}/{path}")
-                            .ReadToEndAsync()
+                    use filestream = IO.File.OpenText($"{folder}/{path}")
+                    return! filestream.ReadToEndAsync()
                 }
 
             member _.GetStream (folder: string) (path: string) : System.Threading.Tasks.Task<System.IO.Stream> =
