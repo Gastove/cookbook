@@ -98,6 +98,10 @@ body .content h2 {
 body .content h3 {
   font-size: 1.4em;
 }
+body .content h3 .post-summary-time {
+  font-weight: normal;
+  font-size: 0.6em;
+}
 body .content h4 {
   font-size: 1.3em;
   font-weight: bold;
@@ -170,6 +174,10 @@ body .content table tr td:first-child, body .content table tr th:first-child {
   border-left: none;
 }
 body .content table tr td:last-child, body .content table tr th:last-child {
+  border-right: none;
+}
+body .content .post-info .post-dates table tr td {
+  border: 10px solid green;
   border-right: none;
 }
 body .content sup {

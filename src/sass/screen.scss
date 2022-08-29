@@ -71,6 +71,11 @@ body {
         h3 {
             @extend %heading;
             font-size: 1.4em;
+
+            .post-summary-time {
+                font-weight: normal;
+                font-size: 0.6em;
+            }
         }
 
         h4 {
@@ -174,6 +179,19 @@ body {
 
                 td:last-child, th:last-child {
                     border-right: none;
+                }
+            }
+        }
+
+        .post-info {
+            .post-dates {
+                table {
+                    tr {
+                        td {
+                            border: 10px solid green;
+                            border-right: none;
+                        }
+                    }
                 }
             }
         }
