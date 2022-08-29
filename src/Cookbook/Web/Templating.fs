@@ -7,7 +7,7 @@ module Templating =
     open Cookbook
     open Cookbook.Common
 
-    let PostDateFormat = "dddd, MMMM d yyyy"
+    let PostDateFormat = "dddd, MMMM d yyyy @ htt"
 
     let LinkedHome = a [ _href "/" ] [ str "$HOME" ]
     let LinkedBlog = a [ _href "/blog" ] [ str "blog" ]
@@ -74,10 +74,27 @@ module Templating =
         footer [] (List.append baseFooter extra)
 
     let postSummary (blogPost: BlogPost) =
+        let posted =
+            blogPost.Meta.PublicationDate.ToString("yyyy-MM-dd")
+
+        let updated =
+            blogPost.Meta.LastUpdated.ToString("yyyy-MM-dd")
+
+        let timeData =
+            if posted = updated then
+                $"└─ Posted: {posted}"
+            else
+                $"└─ Posted: {posted}; Updated: {updated}"
+            |> str
+
         div [] [
             h3 [] [
                 a [ _href $"/blog/{blogPost.Meta.Slug}" ] [
                     str $"{blogPost.Title}"
+                ]
+                br []
+                span [ _class "post-summary-time" ] [
+                    timeData
                 ]
             ]
             str $"{blogPost.Meta.Summary}"
@@ -91,10 +108,13 @@ module Templating =
 
     let tagSelector (tags: string list) =
         tags
-        |> List.map (fun tag -> a [ _href $"/blog/filter/tag/{tag}"] [ tag |> String.capitalizeFirst |> str ])
+        |> List.map (fun tag ->
+            a [ _href $"/blog/filter/tag/{tag}" ] [
+                tag |> String.capitalizeFirst |> str
+            ])
         |> List.interpose (str " | ")
         |> List.append [ str "└─ See only posts tagged with: " ]
-        |> div [ _class "post-filter-subtext"]
+        |> div [ _class "post-filter-subtext" ]
 
     let returnSnippet (tag: string) =
         div [ _class "post-filter-subtext" ] [
@@ -121,7 +141,9 @@ module Templating =
 
         let tagLinks = allTags |> tagSelector
 
-        hdr @ [ tagLinks ] @ returnToUnfiltered @ summaries @ [ hr [] ]
+        hdr
+        @ [ tagLinks ]
+          @ returnToUnfiltered @ summaries @ [ hr [] ]
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
@@ -146,11 +168,28 @@ module Templating =
         div [] (str "Tags: " :: tags)
 
     let postView (blogPost: BlogPost) =
+
         let publicationDate =
             blogPost.Meta.PublicationDate.ToString(PostDateFormat)
 
         let lastUpdated =
             blogPost.Meta.LastUpdated.ToString(PostDateFormat)
+
+        let dateMeta =
+            if publicationDate = lastUpdated then
+                [ tr [] [
+                      td [] [ str "Posted:" ]
+                      td [] [ str publicationDate ]
+                  ] ]
+            else
+                [ tr [] [
+                    td [] [ str "Originally Posted:" ]
+                    td [] [ str publicationDate ]
+                  ]
+                  tr [] [
+                      td [] [ str "Last Updated On:" ]
+                      td [] [ str lastUpdated ]
+                  ] ]
 
         [ div [ _class "post" ] [
             h2 [ _class "post-title" ] [
@@ -164,12 +203,8 @@ module Templating =
             div [] [ rawText blogPost.Body ]
             hr []
           ]
-          div [ _class "post-info" ] [
-              p [] [
-                  str $"Originally Posted: {publicationDate}"
-                  br []
-                  str $"Last Updated On: {lastUpdated}"
-              ]
+          div [ _class ".post-info" ] [
+              table [ _class ".post-dates" ] dateMeta
               p [] [
                   blogPost.Meta.Tags |> splitAndFormatTags
               ]
