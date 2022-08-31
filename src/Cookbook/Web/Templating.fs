@@ -54,7 +54,7 @@ module Templating =
                   str "GitHub"
               ]
               sep
-              a [ _href "/feed/atom" ] [ str "Atom" ]
+              a [ _href "/blog/feed/atom.xml" ] [ str "Atom" ]
               sep
               a [ _href "/blog" ] [ str "Blog!" ]
               sep
