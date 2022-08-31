@@ -21,7 +21,7 @@ module Server =
 
         let webApp =
             choose [ GET
-                     >=> choose [ route "/feed/atom"
+                     >=> choose [ route "/blog/feed/atom.xml"
                                   >=> Handlers.cachingFeedHandler ()
 
                                   route "/blog"

@@ -83,10 +83,10 @@ module Feed =
 
     open System
 
-    let hostName = "http://blog.gastove.com/"
-    let blogPath = hostName + "blog/"
-    let blogTitle = "blog.gastove.com"
-    let dateFormat = "yyyy'-'MM'-'ddTHH':'mm':'ss'Z'"
+    let hostName = "http://gastove.com"
+    let blogPath = $"{hostName}/blog"
+    let blogTitle = "gastove.com/blog"
+    let dateFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz"
 
     module Atom =
 
@@ -107,7 +107,7 @@ module Feed =
             let link = doc.CreateElement("link")
             let linkHref = doc.CreateAttribute("href")
             let linkRel = doc.CreateAttribute("rel")
-            linkHref.Value <- "http://35.185.199.14/feed/atom"
+            linkHref.Value <- $"{blogPath}/feed/atom.xml"
             linkRel.Value <- "self"
             link.Attributes.Append(linkHref) |> ignore
             link.Attributes.Append(linkRel) |> ignore
@@ -133,7 +133,12 @@ module Feed =
         let postToItem (doc: Xml.XmlDocument) (post: BlogPost) =
             let entry = doc.CreateElement("entry")
             let title = doc.CreateElement("title")
+
+            let updated = doc.CreateElement("updated")
+            updated.InnerText <- post.Meta.LastUpdated.ToString(dateFormat)
+
             let content = doc.CreateElement("content")
+            content.SetAttribute("type", "html")
 
             let link = doc.CreateElement("link")
             let linkHref = doc.CreateAttribute("href")
@@ -152,6 +157,7 @@ module Feed =
 
             entry.AppendChild(title) |> ignore
             entry.AppendChild(summary) |> ignore
+            entry.AppendChild(updated) |> ignore
             entry.AppendChild(content) |> ignore
             entry.AppendChild(published) |> ignore
             link.Attributes.Append(linkHref) |> ignore
