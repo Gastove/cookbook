@@ -47,7 +47,7 @@ module Templating =
     let blogPostPageMeta (bp: BlogPost) =
         [ meta [ _name "descrpition"
                  _content bp.Meta.Summary ]
-          meta [ _name "og:descrpition"
+          meta [ _property "og:descrpition"
                  _content bp.Meta.Summary ]
           meta [ _property "og:title"
                  _content bp.Title ]
