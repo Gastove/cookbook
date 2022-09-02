@@ -32,7 +32,7 @@ module Content =
                         Templating.linkedTitle [ Templating.LinkedHome ] $"{slug}.md"
 
                     let page =
-                        Templating.page "gastove.com" List.empty (header @ [ (rawText contents) ])
+                        Templating.page "gastove.com" List.empty List.empty (header @ [ (rawText contents) ])
 
                     return page |> HTMLView |> Ok
                 | Error exn -> return (500, exn |> string) |> Error
@@ -99,7 +99,7 @@ module Content =
                     |> Templating.postSummaries (filter.RenderForHTML() |> Some) allTags
 
                 let view =
-                    Templating.page blogTitle List.empty summaries
+                    Templating.page blogTitle List.empty List.empty summaries
 
                 return view |> HTMLView |> Ok
 
@@ -124,7 +124,7 @@ module Content =
                     |> Templating.postSummaries None allTags
 
                 let view =
-                    Templating.page blogTitle List.empty summaries
+                    Templating.page blogTitle List.empty List.empty summaries
 
                 return view |> HTMLView |> Ok
             | (_, Error e) -> return (500, e) |> Error
@@ -142,9 +142,9 @@ module Content =
                 match postResult with
                 | Ok post ->
                     let postPage = post |> Templating.postView
-
+                    let postMetaExtras = post |> Templating.blogPostPageMeta
                     let view =
-                        Templating.page blogTitle Templating.postFooterExtras postPage
+                        Templating.page blogTitle postMetaExtras Templating.postFooterExtras postPage
 
                     return view |> HTMLView |> Ok
                 | Error e -> return (500, e.Message) |> Error

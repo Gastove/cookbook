@@ -61,6 +61,9 @@ body {
     width: 960px;
   }
 }
+body code {
+  background-color: lightgray;
+}
 body .content {
   margin: 0 auto 53px auto;
   font: normal 125% "Fira Sans", sans-serif;
@@ -137,9 +140,6 @@ body .content p strong {
 }
 body .content p em {
   font-style: italic;
-}
-body .content p code {
-  background-color: lightgray;
 }
 body .content blockquote {
   margin: 1.5em 10px;
