@@ -133,7 +133,7 @@ module Templating =
                     timeData
                 ]
             ]
-            str $"{blogPost.Meta.Summary}"
+            rawText $"{blogPost.Meta.Summary |> blogPostHtmlizeTitle}"
         ]
 
     let pageTitle title =
