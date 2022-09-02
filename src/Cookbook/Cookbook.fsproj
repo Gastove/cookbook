@@ -5,8 +5,7 @@
         <WebProjectOutputDir>$(MSBuildThisFileDirectory)/wwwroot</WebProjectOutputDir>
     </PropertyGroup>
 
-    <ItemGroup>
-        <Compile Include="Common.fs"/>
+    <ItemGroup>        
         <Compile Include="Logging.fs" />
         <Compile Include="Config.fs" />
         <Compile Include="Storage.fs"/>
@@ -20,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Cookbook.Common\Cookbook.Common.fsproj" />
         <ProjectReference Include="..\Xml\Xml.fsproj" />
     </ItemGroup>
 

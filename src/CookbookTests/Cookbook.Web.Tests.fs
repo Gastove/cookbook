@@ -3,6 +3,7 @@ module Cookbook.Web.Tests
 open Expecto
 open Giraffe.ViewEngine
 
+open Cookbook
 open Cookbook.Web
 
 [<Tests>]
@@ -13,13 +14,13 @@ let templatingTests =
           <| fun _ ->
               let input = ":tag:"
               let expected = "Tag"
-              let got = input |> Templating.cleanTag
+              let got = input |> BlogPost.cleanTag
 
               Expect.equal got expected "We should be able to clean a tag"
 
           testCase "Test Templating.splitAndFormatTags with one tag"
           <| fun _ ->
-              let input = ":tag:"
+              let input = ["Tag"]
 
               let expected =
                   div [] [
@@ -29,13 +30,13 @@ let templatingTests =
                       ]
                   ]
 
-              let got = input |> Templating.splitAndFormatTags
+              let got = input |> Templating.formatTags
 
               Expect.equal got expected "We should be able to HTML-ize a single tag"
 
           testCase "Test Templating.splitAndFormatTags with multiple tags"
           <| fun _ ->
-              let input = ":tag1:tag2:tag3:"
+              let input = ["Tag1"; "Tag2"; "Tag3"]
               let sep = str " | "
               let expected =
                   div [] [
@@ -53,7 +54,7 @@ let templatingTests =
                       ]
                   ]
 
-              let got = input |> Templating.splitAndFormatTags
+              let got = input |> Templating.formatTags
 
               Expect.equal got expected "We should be able to HTML-ize a single tag"
           ]

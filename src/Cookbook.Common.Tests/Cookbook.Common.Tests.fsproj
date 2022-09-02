@@ -1,18 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+    
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <GenerateProgramFile>false</GenerateProgramFile>
     </PropertyGroup>
-
+    
     <ItemGroup>
-        <Compile Include="Xml.fs" />
+        <Compile Include="Cookbook.Common.Tests.fs"/>
+        <Compile Include="Main.fs" />
     </ItemGroup>
-
+    
     <ItemGroup>
         <ProjectReference Include="..\Cookbook.Common\Cookbook.Common.fsproj" />
     </ItemGroup>
-
     
     <Import Project="..\..\.paket\Paket.Restore.targets" />
-
+    
 </Project>

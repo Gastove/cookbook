@@ -2,6 +2,8 @@
 
 open FSharp.Data
 
+open Cookbook.Common
+
 type PostMeta =
     XmlProvider<"""
     <POST-META>
@@ -19,12 +21,25 @@ type PostMeta =
     </POST-META>
     """>
 
-
 type BlogPost =
     { Body: string
       Title: string
       Raw: string
       Meta: PostMeta.PostMeta }
+
+    member private __.TagsToRemove = [ "live" ]
+
+    member this.Tags =
+        this.Meta.Tags.Split([| ':' |])
+        |> List.ofArray
+        |> List.choose (fun s ->
+            s.ToLower()            
+            |> String.tryNotNullOrWhiteSpace
+            |> Option.map BlogPost.cleanTag)
+        |> List.filter (fun s -> List.contains s this.TagsToRemove |> not)
+
+    static member cleanTag(tag: string) =
+        tag.Trim().Trim(':') |> String.capitalizeFirst
 
 module Xml =
 
@@ -41,9 +56,6 @@ module Xml =
 
         let post = doc.[0..(startIdx - 1)]
         let metaStr = doc.[startIdx..(endIdx + endTag.Length)]
-
-        // TODO[gastove|2022-08-27] Gotta wrap Parse in a try/catch, that sucker
-        // detonates gracelessly.
 
         try
             let parsed = PostMeta.Parse(metaStr)
