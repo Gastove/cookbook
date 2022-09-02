@@ -21,24 +21,58 @@ module Templating =
         [ h1 [ _class "page-title" ] ([ str "> " ] @ withSep @ [ str title ])
           hr [] ]
 
-    let header pageTitle =
-        head [] [
-            meta [ _charset "utf-8" ]
-            meta [ _name "viewport"
-                   _content "width=device-width, initial-scale=1.0" ]
-            link [ _rel "stylesheet"
-                   _type "text/css"
-                   _href "/css/screen.css" ]
+    let header pageTitle extras =
+        let headContents =
+            [ meta [ _charset "utf-8" ]
+              meta [ _name "viewport"
+                     _content "width=device-width, initial-scale=1.0" ]
+              link [ _rel "stylesheet"
+                     _type "text/css"
+                     _href "/css/screen.css" ]
 
-            link [ _rel "stylesheet"
-                   _type "text/css"
-                   _href "/css/prism.css" ]
+              link [ _rel "stylesheet"
+                     _type "text/css"
+                     _href "/css/prism.css" ]
 
-            link [ _rel "stylesheet"
-                   _href "https://fonts.googleapis.com/css?family=Fira+Sans|Roboto+Mono" ]
+              link [ _rel "stylesheet"
+                     _href "https://fonts.googleapis.com/css?family=Fira+Sans|Roboto+Mono" ]
 
-            title [] [ encodedText pageTitle ]
-        ]
+              title [] [ encodedText pageTitle ]
+
+              ]
+            @ extras
+
+        head [] headContents
+
+    let blogPostPageMeta (bp: BlogPost) =
+        [ meta [ _name "descrpition"
+                 _content bp.Meta.Summary ]
+          meta [ _name "og:descrpition"
+                 _content bp.Meta.Summary ]
+          meta [ _property "og:title"
+                 _content bp.Title ]
+          meta [ _property "og:url"
+                 _content $"http://gastove.com/blog/{bp.Meta.Slug}" ] ]
+
+    let blogPostHtmlizeTitle (title: string) =
+        title.Split([| ' ' |])
+        |> Array.map (fun word ->
+            Serilog.Log.Information("Checking {Word}", word)
+
+            let word =
+                if word.StartsWith '~' then
+                    $"<code>{word.TrimStart('~')}"
+                else
+                    word
+
+            let word =
+                if word.EndsWith '~' then
+                    $"{word.TrimEnd('~')}</code>"
+                else
+                    word
+
+            word)
+        |> String.concat " "
 
     let footer extra =
         let sep = str " | "
@@ -54,7 +88,9 @@ module Templating =
                   str "GitHub"
               ]
               sep
-              a [ _href "/blog/feed/atom.xml" ] [ str "Atom" ]
+              a [ _href "/blog/feed/atom.xml" ] [
+                  str "Atom"
+              ]
               sep
               a [ _href "/blog" ] [ str "Blog!" ]
               sep
@@ -90,14 +126,14 @@ module Templating =
         div [] [
             h3 [] [
                 a [ _href $"/blog/{blogPost.Meta.Slug}" ] [
-                    str $"{blogPost.Title}"
+                    rawText $"{blogPost.Title |> blogPostHtmlizeTitle}"
                 ]
                 br []
                 span [ _class "post-summary-time" ] [
                     timeData
                 ]
             ]
-            str $"{blogPost.Meta.Summary}"
+            rawText $"{blogPost.Meta.Summary |> blogPostHtmlizeTitle}"
         ]
 
     let pageTitle title =
@@ -197,7 +233,9 @@ module Templating =
                 a [ _href "/" ] [ str "$HOME" ]
                 str "/"
                 a [ _href "/blog" ] [ str "blog" ]
-                str $"/\"{blogPost.Title}\""
+                str "/\""
+                rawText (blogPost.Title |> blogPostHtmlizeTitle)
+                str "\""
             ]
             hr []
             div [] [ rawText blogPost.Body ]
@@ -210,9 +248,9 @@ module Templating =
               ]
           ] ]
 
-    let page pageTitle footerExtras pageBody =
+    let page pageTitle headerExtras footerExtras pageBody =
         html [] [
-            header pageTitle
+            header pageTitle headerExtras
             body [] [
                 div [ _class "content" ] pageBody
             ]

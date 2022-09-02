@@ -21,6 +21,10 @@ body {
 
     @include if-media-is(computer) { width: 960px; }
 
+    code {
+        background-color: lightgray;
+    }
+
     .content {
 
         i {
@@ -132,9 +136,6 @@ body {
                 font-style: italic
             }
 
-            code {
-                background-color: lightgray;
-            }
         }
 
         blockquote {
