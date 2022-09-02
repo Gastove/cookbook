@@ -1,5 +1,5 @@
 namespace Cookbook.Web
-
+  
 module Templating =
 
     open Giraffe.ViewEngine
@@ -183,22 +183,15 @@ module Templating =
 
     let postFooterExtras = [ script [ _src "/js/prism.js" ] [] ]
 
-    // TODO[gastove|2022-08-24] Move this into XML or Blog or something -> this
-    // layer should be handed pre-parsed data.
-    let cleanTag (tag: string) =
-        tag.Trim().Trim(':') |> String.capitalizeFirst
-
     let formatTag (tag: string) =
         a [ _href $"/blog/filter/tag/{tag.ToLower()}" ] [
             str $"{tag}"
         ]
-
-    let splitAndFormatTags (tags: string) =
+ 
+    let formatTags (tags: string list) =
         let tags =
-            tags.Split([| ':' |])
-            |> List.ofArray
-            |> List.filter String.notNullOrWhiteSpace
-            |> List.map (cleanTag >> formatTag)
+            tags
+            |> List.map formatTag
             |> List.interpose (str " | ")
 
         div [] (str "Tags: " :: tags)
@@ -244,7 +237,7 @@ module Templating =
           div [ _class ".post-info" ] [
               table [ _class ".post-dates" ] dateMeta
               p [] [
-                  blogPost.Meta.Tags |> splitAndFormatTags
+                  blogPost.Tags |> formatTags
               ]
           ] ]
 

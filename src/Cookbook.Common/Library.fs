@@ -11,7 +11,9 @@ module String =
         |> System.String
 
     let isNullOrWhiteSpace = System.String.IsNullOrWhiteSpace
-    let notNullOrWhiteSpace = isNullOrWhiteSpace >> not
+    let notNullOrWhiteSpace = isNullOrWhiteSpace >> not    
+    let tryNotNullOrWhiteSpace (s: string) =
+        if s |> notNullOrWhiteSpace then s |> Some else None
 
 
 module List =

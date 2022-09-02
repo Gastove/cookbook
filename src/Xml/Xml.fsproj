@@ -8,6 +8,11 @@
         <Compile Include="Xml.fs" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\Cookbook.Common\Cookbook.Common.fsproj" />
+    </ItemGroup>
+
+    
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 
 </Project>
