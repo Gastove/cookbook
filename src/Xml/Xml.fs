@@ -36,7 +36,7 @@ type BlogPost =
             s.ToLower()            
             |> String.tryNotNullOrWhiteSpace
             |> Option.map BlogPost.cleanTag)
-        |> List.filter (fun s -> List.contains s this.TagsToRemove |> not)
+        |> List.filter (fun s -> List.contains (s |> String.toLower) this.TagsToRemove |> not)
 
     static member cleanTag(tag: string) =
         tag.Trim().Trim(':') |> String.capitalizeFirst

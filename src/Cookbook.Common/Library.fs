@@ -11,10 +11,15 @@ module String =
         |> System.String
 
     let isNullOrWhiteSpace = System.String.IsNullOrWhiteSpace
-    let notNullOrWhiteSpace = isNullOrWhiteSpace >> not    
-    let tryNotNullOrWhiteSpace (s: string) =
-        if s |> notNullOrWhiteSpace then s |> Some else None
+    let notNullOrWhiteSpace = isNullOrWhiteSpace >> not
 
+    let tryNotNullOrWhiteSpace (s: string) =
+        if s |> notNullOrWhiteSpace then
+            s |> Some
+        else
+            None
+
+    let toLower (s: string) = s.ToLower()
 
 module List =
 
@@ -34,9 +39,9 @@ module Result =
     let gather (results: Result<'T, 'E> seq) =
         let rec work remaining acc =
             match remaining with
-                | [] -> acc |> List.rev |> Ok
-                | res :: rest ->
-                    res
-                    |> Result.bind (fun ok -> work rest (ok :: acc))
+            | [] -> acc |> List.rev |> Ok
+            | res :: rest ->
+                res
+                |> Result.bind (fun ok -> work rest (ok :: acc))
 
         work (results |> Seq.toList) []
