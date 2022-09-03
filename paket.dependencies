@@ -13,6 +13,7 @@ nuget Giraffe.ViewEngine
 nuget Google.Cloud.Storage.V1
 nuget Markdig
 nuget Microsoft.AspNetCore.All
+nuget Microsoft.AspNetCore.TestHost
 nuget Microsoft.NET.Test.Sdk
 nuget Serilog
 nuget Serilog.AspNetCore
