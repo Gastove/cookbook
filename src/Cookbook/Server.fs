@@ -88,14 +88,15 @@ module Server =
         |> ignore
 
         // This sucker has a different return type; no chaining.
-        services.AddHealthChecks() |> ignore        
-
-        if env.IsDevelopment() then
-            services.AddSingleton<IStorageClient, Cookbook.Storage.FileSystemStorageClient>()
-            |> ignore
-        else
+        services.AddHealthChecks() |> ignore
+        Serilog.Log.Information("Running in {env}", env.EnvironmentName)
+        if env.IsProduction() then
             services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.CachingGcsStorageClient>()
             |> ignore
+        else
+            services.AddSingleton<IStorageClient, Cookbook.Storage.FileSystemStorageClient>()
+            |> ignore
+
 
     let configureApp (app: IApplicationBuilder) =
         let env =
