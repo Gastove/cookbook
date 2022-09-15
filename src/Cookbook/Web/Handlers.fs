@@ -4,7 +4,6 @@ module Handlers =
 
     open Giraffe
     open Prometheus
-    open Serilog
 
     open Microsoft.Extensions.Options
     open Microsoft.Extensions.Caching.Memory
