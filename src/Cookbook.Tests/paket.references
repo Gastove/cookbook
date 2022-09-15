@@ -1,0 +1,5 @@
+Expecto
+Giraffe.ViewEngine
+Microsoft.AspNetCore.TestHost 
+Microsoft.NET.Test.Sdk
+YoloDev.Expecto.TestSdk

@@ -31,7 +31,8 @@ module Server =
 
                                   routef "/blog/%s" Handlers.cachingBlogPostHandler
 
-                                  route "/" >=> Handlers.cachingPageHandler "welcome"
+                                  route "/"
+                                  >=> Handlers.cachingPageHandler "welcome"
                                   routef "/%s" Handlers.cachingPageHandler ]
                      setStatusCode 404 >=> text "Not Found" ]
 
@@ -44,9 +45,11 @@ module Server =
         let DefaultHttp = 5000
         let Metrics = 5005
 
-        let httpPortOrDefault() =
+        let httpPortOrDefault () =
             try
-                match (System.Environment.GetEnvironmentVariable "PORT").Trim() with
+                match (System.Environment.GetEnvironmentVariable "PORT")
+                    .Trim()
+                    with
                 | "" -> DefaultHttp
                 | httpPort -> httpPort |> int
             with
@@ -75,17 +78,25 @@ module Server =
         let cfg = sp.GetService<IConfiguration>()
         let env = sp.GetService<IWebHostEnvironment>()
 
-        services.Configure<CookbookConfig>(cfg.GetSection(CookbookConfig.CookbookConfig)) |> ignore
-        services.AddCors() |> ignore
-        services.AddGiraffe() |> ignore
-        services.AddResponseCaching() |> ignore
-        services.AddHealthChecks() |> ignore
-        services.AddMemoryCache() |> ignore
+        // These all return an IServiceCollection, so can be chained
+        services
+            .Configure<CookbookConfig>(cfg.GetSection(CookbookConfig.CookbookConfig))
+            .AddCors()
+            .AddGiraffe()
+            .AddResponseCaching()
+            .AddMemoryCache()
+        |> ignore
 
-        if env.IsDevelopment() then
-            services.AddSingleton<IStorageClient, Cookbook.Storage.FileSystemStorageClient>() |> ignore
+        // This sucker has a different return type; no chaining.
+        services.AddHealthChecks() |> ignore
+        Serilog.Log.Information("Running in {env}", env.EnvironmentName)
+        if env.IsProduction() then
+            services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.CachingGcsStorageClient>()
+            |> ignore
         else
-            services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.CachingGcsStorageClient>() |> ignore
+            services.AddSingleton<IStorageClient, Cookbook.Storage.FileSystemStorageClient>()
+            |> ignore
+
 
     let configureApp (app: IApplicationBuilder) =
         let env =
@@ -135,7 +146,7 @@ module Main =
             .UseSerilog(Logging.ConfigureRuntimeLogger)
             .ConfigureWebHost(fun host ->
                 host.ConfigureKestrel (fun kestrelConfig ->
-                    kestrelConfig.ListenAnyIP(Server.Ports.httpPortOrDefault())
+                    kestrelConfig.ListenAnyIP(Server.Ports.httpPortOrDefault ())
                     kestrelConfig.ListenAnyIP(Server.Ports.Metrics))
                 |> ignore)
             .ConfigureWebHostDefaults(fun webHostBuilder ->
