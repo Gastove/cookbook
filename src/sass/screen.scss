@@ -95,6 +95,12 @@ body {
             font-size: 1.2em;
         }
 
+        .post-body hr {
+            margin-top: 1.5em;
+            margin-bottom: 1.5em;
+            width: 75%;
+        }
+        
         ul {
             list-style-type: circle;
             margin-left: 1.5em;
@@ -154,6 +160,28 @@ body {
             margin-left:     1.6em;
         }
 
+        dl {
+            margin-left: 1.0em;
+
+            dt::before {
+                content: "> "
+            }
+
+            dt::after {
+                content: ":"
+            }
+
+            dd::before {
+                content: "- "
+            }
+
+            dd {
+                margin-left: 0.75em;
+                margin-top: 0.1em;
+                margin-bottom: 0.75em;
+            }
+        }
+
         table {
 
             margin: 36px auto;
@@ -208,6 +236,16 @@ body {
             code {
                 font: normal 100% 'Roboto Mono', monospace;
             }
+        }
+
+        #footnotes {
+            .footdef {
+                sup {
+                    font-size: inherit;
+                    font-variant-position: normal;
+                }
+            }
+
         }
     }
 }

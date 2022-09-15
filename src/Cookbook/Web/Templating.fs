@@ -1,5 +1,5 @@
 namespace Cookbook.Web
-  
+
 module Templating =
 
     open Giraffe.ViewEngine
@@ -57,7 +57,6 @@ module Templating =
     let blogPostHtmlizeTitle (title: string) =
         title.Split([| ' ' |])
         |> Array.map (fun word ->
-            Serilog.Log.Information("Checking {Word}", word)
 
             let word =
                 if word.StartsWith '~' then
@@ -187,7 +186,7 @@ module Templating =
         a [ _href $"/blog/filter/tag/{tag.ToLower()}" ] [
             str $"{tag}"
         ]
- 
+
     let formatTags (tags: string list) =
         let tags =
             tags
@@ -231,7 +230,7 @@ module Templating =
                 str "\""
             ]
             hr []
-            div [] [ rawText blogPost.Body ]
+            div [ _class "post-body" ] [ rawText blogPost.Body ]
             hr []
           ]
           div [ _class ".post-info" ] [
