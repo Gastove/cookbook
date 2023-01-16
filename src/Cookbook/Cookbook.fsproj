@@ -5,7 +5,7 @@
         <WebProjectOutputDir>$(MSBuildThisFileDirectory)/wwwroot</WebProjectOutputDir>
     </PropertyGroup>
 
-    <ItemGroup>        
+    <ItemGroup>
         <Compile Include="Logging.fs" />
         <Compile Include="Config.fs" />
         <Compile Include="Storage.fs"/>
