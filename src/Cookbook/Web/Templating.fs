@@ -51,6 +51,10 @@ module Templating =
                  _content bp.Meta.Summary ]
           meta [ _property "og:title"
                  _content bp.Title ]
+          meta [ _property "og:type"
+                 _content "website" ]
+          meta [ _property "og:site_name"
+                 _content "gastove.com/blog"]
           meta [ _property "og:url"
                  _content $"http://gastove.com/blog/{bp.Meta.Slug}" ] ]
 
@@ -230,14 +234,14 @@ module Templating =
                 str "\""
             ]
             hr []
-            div [ _class "post-body" ] [ rawText blogPost.Body ]
+            div [ _class "post-body" ] [
+                rawText blogPost.Body
+            ]
             hr []
           ]
           div [ _class ".post-info" ] [
               table [ _class ".post-dates" ] dateMeta
-              p [] [
-                  blogPost.Tags |> formatTags
-              ]
+              p [] [ blogPost.Tags |> formatTags ]
           ] ]
 
     let page pageTitle headerExtras footerExtras pageBody =
