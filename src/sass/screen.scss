@@ -100,7 +100,7 @@ body {
             margin-bottom: 1.5em;
             width: 75%;
         }
-        
+
         ul {
             list-style-type: circle;
             margin-left: 1.5em;
@@ -239,10 +239,17 @@ body {
         }
 
         #footnotes {
+
             .footdef {
+                display: inline-block;
+
                 sup {
                     font-size: inherit;
                     font-variant-position: normal;
+                }
+
+                .footpara {
+                    display: inline-block;
                 }
             }
 

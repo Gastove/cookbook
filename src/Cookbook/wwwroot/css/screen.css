@@ -212,9 +212,15 @@ body .content pre {
 body .content pre code {
   font: normal 100% "Roboto Mono", monospace;
 }
+body .content #footnotes .footdef {
+  display: inline-block;
+}
 body .content #footnotes .footdef sup {
   font-size: inherit;
   font-variant-position: normal;
+}
+body .content #footnotes .footdef .footpara {
+  display: inline-block;
 }
 
 /*# sourceMappingURL=screen.css.map */
