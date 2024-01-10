@@ -108,7 +108,7 @@ module Templating =
               ]
               br []
               br []
-              str "© Ross M. Donaldson, 2022" ]
+              str "© Ross M. Donaldson, 2024" ]
 
         footer [] (List.append baseFooter extra)
 
