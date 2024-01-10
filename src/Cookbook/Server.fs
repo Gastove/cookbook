@@ -140,7 +140,7 @@ module Main =
         // match Static.Sync.runSync (Config.loadConfig ()) with
         // | Ok (syncer) -> syncer.Start()
         // | Error (errorValue) -> Log.Error("Failed to start sync process; error was, {errorValue}", errorValue)
-
+ 
         Host
             .CreateDefaultBuilder(args)
             .UseSerilog(Logging.ConfigureRuntimeLogger)

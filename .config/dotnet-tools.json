@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "paket": {
-      "version": "7.1.5",
+      "version": "8.0.0",
       "commands": [
         "paket"
       ]
@@ -15,7 +15,7 @@
       ]
     },
     "fsautocomplete": {
-      "version": "0.58.2",
+      "version": "0.68.0",
       "commands": [
         "fsautocomplete"
       ]
