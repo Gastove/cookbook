@@ -37,7 +37,7 @@ module Content =
                     return page |> HTMLView |> Ok
                 | Error exn -> return (500, exn |> string) |> Error
             }
-
+ 
     [<RequireQualifiedAccess>]
     type BlogFilter =
         | Id

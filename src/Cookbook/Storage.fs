@@ -27,7 +27,7 @@ type Media =
             else
                 None
 
-        let (|Jpeg|_|) fileName =
+        let (|Jpeg|_|) (fileName: string) =
             let jpegRe =
                 System.Text.RegularExpressions.Regex(".*\.jpe?g$")
 
@@ -36,7 +36,7 @@ type Media =
             else
                 None
 
-        let (|Gif|_|) fileName =
+        let (|Gif|_|) (fileName: string) =
             let gifRe =
                 System.Text.RegularExpressions.Regex(".*\.gif$")
 
@@ -45,7 +45,7 @@ type Media =
             else
                 None
 
-        let (|Html|_|) fileName =
+        let (|Html|_|) (fileName: string) =
             let htmlRe =
                 System.Text.RegularExpressions.Regex(".*\.html$")
 
