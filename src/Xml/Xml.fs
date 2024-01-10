@@ -33,10 +33,12 @@ type BlogPost =
         this.Meta.Tags.Split([| ':' |])
         |> List.ofArray
         |> List.choose (fun s ->
-            s.ToLower()            
+            s.ToLower()
             |> String.tryNotNullOrWhiteSpace
             |> Option.map BlogPost.cleanTag)
-        |> List.filter (fun s -> List.contains (s |> String.toLower) this.TagsToRemove |> not)
+        |> List.filter (fun s ->
+            List.contains (s |> String.toLower) this.TagsToRemove
+            |> not)
 
     static member cleanTag(tag: string) =
         tag.Trim().Trim(':') |> String.capitalizeFirst
@@ -63,17 +65,6 @@ module Xml =
         with
         | exn -> exn |> Error
 
-    let readPostAndParse (stream: IO.Stream) =
-        use reader = new IO.StreamReader(stream)
-        let contents = reader.ReadToEnd()
-
-        separatePostAndMeta contents
-        |> Result.map (fun (post, meta) ->
-            { Body = post
-              Title = meta.Title
-              Raw = post
-              Meta = meta })
-
     let parsePost (post: string) =
         separatePostAndMeta post
         |> Result.map (fun (post, meta) ->
@@ -82,14 +73,9 @@ module Xml =
               Raw = post
               Meta = meta })
 
-    let readPostAndParseAsync (stream: IO.Stream) =
-        task {
-            use reader = new IO.StreamReader(stream)
-
-            let! contents = reader.ReadToEndAsync()
-
-            return separatePostAndMeta contents
-        }
+    let readPostAndParse (stream: IO.Stream) =
+        use reader = new IO.StreamReader(stream)
+        reader.ReadToEnd() |> parsePost
 
 module Feed =
 
