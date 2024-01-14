@@ -78,6 +78,7 @@ module Templating =
         |> String.concat " "
 
     let footer extra =
+        let year = (System.DateTime.Now).Year
         let sep = str " | "
 
         let baseFooter =
@@ -108,7 +109,7 @@ module Templating =
               ]
               br []
               br []
-              str "© Ross M. Donaldson, 2024" ]
+              str $"© Ross M. Donaldson, 2022-{year}" ]
 
         footer [] (List.append baseFooter extra)
 
