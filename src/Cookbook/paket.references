@@ -13,3 +13,5 @@ Thoth.Json
 Thoth.Json.Net
 prometheus-net
 prometheus-net.AspNetCore
+LibGit2Sharp
+LibGit2Sharp.NativeBinaries

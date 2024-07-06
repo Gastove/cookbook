@@ -3,7 +3,6 @@ namespace Cookbook
 module Static =
 
     open System
-    open System.Threading.Tasks
 
     open Serilog
 
