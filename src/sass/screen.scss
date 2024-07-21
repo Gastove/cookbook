@@ -239,19 +239,14 @@ body {
             }
         }
 
-        #footnotes {
+        #text-footnotes {
 
-            .footdef {
-                display: inline-block;
-
-                sup {
-                    font-size: inherit;
-                    font-variant-position: normal;
-                }
-
-                .footpara {
-                    display: inline-block;
-                }
+            .footdef .footblock {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                gap: 1em;
             }
 
         }
