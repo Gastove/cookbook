@@ -20,6 +20,7 @@
       devShells.${system}.default =
         pkgs.mkShell {
           buildInputs = [
+            pkgs.dart-sass
             pkgs.dotnet-sdk_8
           ];
 

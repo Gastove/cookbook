@@ -63,6 +63,7 @@ body {
 }
 body code {
   background-color: lightgray;
+  border-radius: 5px;
 }
 body .content {
   margin: 0 auto 53px auto;
@@ -92,8 +93,7 @@ body .content .post-filter-subtext {
   font-size: 0.85em;
 }
 body .content h1 {
-  font-size: 1.75em;
-  /* 150% size*/
+  font-size: 1.75em; /* 150% size*/
 }
 body .content h2 {
   font-size: 1.5em;
@@ -148,7 +148,7 @@ body .content p em {
 }
 body .content blockquote {
   margin: 1.5em 10px;
-  border-left: 2px solid #a9a69b;
+  border-left: 2px solid rgb(169, 166, 155);
   padding-left: 0.75em;
 }
 body .content ol {
@@ -212,15 +212,12 @@ body .content pre {
 body .content pre code {
   font: normal 100% "Roboto Mono", monospace;
 }
-body .content #footnotes .footdef {
-  display: inline-block;
-}
-body .content #footnotes .footdef sup {
-  font-size: inherit;
-  font-variant-position: normal;
-}
-body .content #footnotes .footdef .footpara {
-  display: inline-block;
+body .content #text-footnotes .footdef .footblock {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
 }
 
 /*# sourceMappingURL=screen.css.map */
