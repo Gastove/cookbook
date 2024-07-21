@@ -1,25 +1,30 @@
 {
   description = "Cookbook: my personal web-dingus.";
 
-  inputs = { nixpkgs.url = "github:nixos/nixpkgs";};
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs";
+  };
 
   outputs = { self, nixpkgs }:
 
-    let pkgs =
-          nixpkgs.legacyPackages.x86_64-linux;
+    let
+      system = "x86_64-linux";
 
-    in {
+      pkgs = nixpkgs.legacyPackages.${system};
 
-      packages.x86_64-linux.dotnet-sdk = pkgs.dotnet-sdk_8;
+    in
+    {
+      # NOTE[gastove|2024-07-07] I don't think I need this.
+      # packages.x86_64-linux.dotnet-sdk = pkgs.dotnet-sdk_8;
 
-      devShell.x86_64-linux =
+      devShells.${system}.default =
         pkgs.mkShell {
           buildInputs = [
-            self.packages.x86_64-linux.dotnet-sdk
+            pkgs.dotnet-sdk_8
           ];
 
-          DOTNET_ROOT="${pkgs.dotnet-sdk_8}";          
-        };      
+          DOTNET_ROOT = "${pkgs.dotnet-sdk_8}";
+        };
     };
 
 }

@@ -3,22 +3,32 @@
   "isRoot": true,
   "tools": {
     "paket": {
-      "version": "8.0.0",
+      "version": "8.0.3",
       "commands": [
         "paket"
-      ]
+      ],
+      "rollForward": false
     },
     "fake-cli": {
       "version": "5.23.0",
       "commands": [
         "fake"
-      ]
+      ],
+      "rollForward": false
     },
     "fsautocomplete": {
-      "version": "0.68.0",
+      "version": "0.73.2",
       "commands": [
         "fsautocomplete"
-      ]
+      ],
+      "rollForward": false
+    },
+    "fantomas": {
+      "version": "6.3.10",
+      "commands": [
+        "fantomas"
+      ],
+      "rollForward": false
     }
   }
 }
