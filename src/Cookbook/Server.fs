@@ -20,21 +20,20 @@ module Server =
     module Routes =
 
         let webApp =
-            choose [ GET
-                     >=> choose [ route "/blog/feed/atom.xml"
-                                  >=> Handlers.cachingFeedHandler ()
+            choose
+                [ GET
+                  >=> choose
+                          [ route "/blog/feed/atom.xml" >=> Handlers.cachingFeedHandler ()
 
-                                  route "/blog"
-                                  >=> Handlers.cachingBlogIndexHandler ()
+                            route "/blog" >=> Handlers.cachingBlogIndexHandler ()
 
-                                  routef "/blog/filter/tag/%s" Handlers.cachingFilteredBlogIndexHandler
+                            routef "/blog/filter/tag/%s" Handlers.cachingFilteredBlogIndexHandler
 
-                                  routef "/blog/%s" Handlers.cachingBlogPostHandler
+                            routef "/blog/%s" Handlers.cachingBlogPostHandler
 
-                                  route "/"
-                                  >=> Handlers.cachingPageHandler "welcome"
-                                  routef "/%s" Handlers.cachingPageHandler ]
-                     setStatusCode 404 >=> text "Not Found" ]
+                            route "/" >=> Handlers.cachingPageHandler "welcome"
+                            routef "/%s" Handlers.cachingPageHandler ]
+                  setStatusCode 404 >=> text "Not Found" ]
 
     // Google Cloud Run requires we respect the Port environment variable. I
     // can't find a satisfying way to configure that outside of code; the
@@ -47,13 +46,11 @@ module Server =
 
         let httpPortOrDefault () =
             try
-                match (System.Environment.GetEnvironmentVariable "PORT")
-                    .Trim()
-                    with
+                match (System.Environment.GetEnvironmentVariable "PORT").Trim() with
                 | "" -> DefaultHttp
                 | httpPort -> httpPort |> int
-            with
-            | _ -> DefaultHttp
+            with _ ->
+                DefaultHttp
 
 
     /// Display errors generated while serving traffic. Uses a totally different
@@ -62,9 +59,7 @@ module Server =
     let errorHandler (ex: Exception) (logger: ILogger) =
         logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
 
-        clearResponse
-        >=> setStatusCode 500
-        >=> text ex.Message
+        clearResponse >=> setStatusCode 500 >=> text ex.Message
 
     let configureCors (builder: CorsPolicyBuilder) =
         builder
@@ -90,8 +85,9 @@ module Server =
         // This sucker has a different return type; no chaining.
         services.AddHealthChecks() |> ignore
         Serilog.Log.Information("Running in {env}", env.EnvironmentName)
+
         if env.IsProduction() then
-            services.AddSingleton<Cookbook.IStorageClient, Cookbook.Storage.CachingGcsStorageClient>()
+            services.AddSingleton<IStorageClient, Cookbook.Storage.CachingGcsStorageClient>()
             |> ignore
         else
             services.AddSingleton<IStorageClient, Cookbook.Storage.FileSystemStorageClient>()
@@ -99,8 +95,7 @@ module Server =
 
 
     let configureApp (app: IApplicationBuilder) =
-        let env =
-            app.ApplicationServices.GetService<IWebHostEnvironment>()
+        let env = app.ApplicationServices.GetService<IWebHostEnvironment>()
 
         (match env.IsDevelopment() with
          | true -> app.UseDeveloperExceptionPage()
@@ -110,10 +105,7 @@ module Server =
             .UseResponseCaching()
             .UseRouting()
             .UseEndpoints(fun endpoints ->
-                endpoints
-                    .MapMetrics()
-                    .RequireHost([| $"*:{Ports.Metrics}" |])
-                |> ignore
+                endpoints.MapMetrics().RequireHost([| $"*:{Ports.Metrics}" |]) |> ignore
 
                 endpoints.MapHealthChecks("/healthz") |> ignore)
             .UseHttpMetrics()
@@ -140,12 +132,12 @@ module Main =
         // match Static.Sync.runSync (Config.loadConfig ()) with
         // | Ok (syncer) -> syncer.Start()
         // | Error (errorValue) -> Log.Error("Failed to start sync process; error was, {errorValue}", errorValue)
- 
+
         Host
             .CreateDefaultBuilder(args)
             .UseSerilog(Logging.ConfigureRuntimeLogger)
             .ConfigureWebHost(fun host ->
-                host.ConfigureKestrel (fun kestrelConfig ->
+                host.ConfigureKestrel(fun kestrelConfig ->
                     kestrelConfig.ListenAnyIP(Server.Ports.httpPortOrDefault ())
                     kestrelConfig.ListenAnyIP(Server.Ports.Metrics))
                 |> ignore)

@@ -8,3 +8,4 @@ obj/
 /.ionide
 /cookbook-gke.json
 /.envrc
+/.direnv/

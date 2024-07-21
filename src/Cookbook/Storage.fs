@@ -19,40 +19,24 @@ type Media =
 
     static member ComputeMediaType(fileName: string) =
         let (|Png|_|) (fileName: string) =
-            let pngRe =
-                System.Text.RegularExpressions.Regex(".*\.png$")
+            let pngRe = System.Text.RegularExpressions.Regex(".*\.png$")
 
-            if pngRe.IsMatch(fileName) then
-                Some Png
-            else
-                None
+            if pngRe.IsMatch(fileName) then Some Png else None
 
         let (|Jpeg|_|) (fileName: string) =
-            let jpegRe =
-                System.Text.RegularExpressions.Regex(".*\.jpe?g$")
+            let jpegRe = System.Text.RegularExpressions.Regex(".*\.jpe?g$")
 
-            if jpegRe.IsMatch(fileName) then
-                Some Jpeg
-            else
-                None
+            if jpegRe.IsMatch(fileName) then Some Jpeg else None
 
         let (|Gif|_|) (fileName: string) =
-            let gifRe =
-                System.Text.RegularExpressions.Regex(".*\.gif$")
+            let gifRe = System.Text.RegularExpressions.Regex(".*\.gif$")
 
-            if gifRe.IsMatch(fileName) then
-                Some Gif
-            else
-                None
+            if gifRe.IsMatch(fileName) then Some Gif else None
 
         let (|Html|_|) (fileName: string) =
-            let htmlRe =
-                System.Text.RegularExpressions.Regex(".*\.html$")
+            let htmlRe = System.Text.RegularExpressions.Regex(".*\.html$")
 
-            if htmlRe.IsMatch(fileName) then
-                Some Html
-            else
-                None
+            if htmlRe.IsMatch(fileName) then Some Html else None
 
         match fileName with
         | Png -> Ok "image/png"
@@ -63,11 +47,11 @@ type Media =
 
 
 type IStorageClient =
-    abstract Get : string -> string -> Task<string>
-    abstract GetStream : string -> string -> Task<IO.Stream>
-    abstract Put : string -> string -> Media -> Task<string>
-    abstract List : string -> string -> Task<string list>
-    abstract TryExists : string -> string -> Task<Result<unit, exn>>
+    abstract Get: string -> string -> Task<string>
+    abstract GetStream: string -> string -> Task<IO.Stream>
+    abstract Put: string -> string -> Media -> Task<string>
+    abstract List: string -> string -> Task<string list>
+    abstract TryExists: string -> string -> Task<Result<unit, exn>>
 
 module Storage =
 
@@ -83,7 +67,7 @@ module Storage =
         let Client = V1.StorageClient.Create()
 
         member __.DownloadProgress fileName =
-            System.Progress<IDownloadProgress> (fun p ->
+            System.Progress<IDownloadProgress>(fun p ->
                 logger.Information(
                     "Downloading {FileName}; wrote {BytesDownloaded}, status: {Status}",
                     fileName,
@@ -92,7 +76,7 @@ module Storage =
                 ))
 
         member __.UploadProgress file =
-            System.Progress<IUploadProgress> (fun p ->
+            System.Progress<IUploadProgress>(fun p ->
                 logger.Information(
                     "Uploading {FileName}; wrote {BytesSent}, status: {Status}",
                     file.FileName,
@@ -102,12 +86,9 @@ module Storage =
 
         interface IStorageClient with
             member this.Put bucket prefix (file: Media) =
-                let acl =
-                    Some(V1.PredefinedObjectAcl.PublicRead)
-                    |> Option.toNullable
+                let acl = Some(V1.PredefinedObjectAcl.PublicRead) |> Option.toNullable
 
-                let options =
-                    V1.UploadObjectOptions(PredefinedAcl = acl)
+                let options = V1.UploadObjectOptions(PredefinedAcl = acl)
 
                 let objectName = $"{prefix}/{file.FileName}"
 
@@ -136,8 +117,7 @@ module Storage =
 
             member this.GetStream (bucket: string) (path: string) : Task<IO.Stream> =
                 task {
-                    let stream =
-                        new IO.BufferedStream(new IO.MemoryStream()) :> IO.Stream
+                    let stream = new IO.BufferedStream(new IO.MemoryStream()) :> IO.Stream
 
                     use tokenSource = new CancellationTokenSource()
                     let token = tokenSource.Token
@@ -188,8 +168,8 @@ module Storage =
                     try
                         let! _ = Client.GetObjectAsync(bucket, path)
                         return () |> Ok
-                    with
-                    | exn -> return exn |> Error
+                    with exn ->
+                        return exn |> Error
                 }
 
     exception FileNotExists of string
@@ -237,8 +217,7 @@ module Storage =
                 }
 
     type CachingGcsStorageClient(memoryCache: IMemoryCache, logger: ILogger) =
-        let GCSClient =
-            GcsStorageClient(logger) :> IStorageClient
+        let GCSClient = GcsStorageClient(logger) :> IStorageClient
 
         interface IStorageClient with
             member _.Get (bucket: string) (path: string) : Task<string> =
