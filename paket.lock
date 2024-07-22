@@ -64,12 +64,11 @@ NUGET
       FSharp.Data.Http (>= 6.4) - restriction: >= netstandard2.0
       FSharp.Data.Json.Core (>= 6.4) - restriction: >= netstandard2.0
       FSharp.Data.Runtime.Utilities (>= 6.4) - restriction: >= netstandard2.0
-    Giraffe (6.4)
+    Giraffe (7.0)
       FSharp.Core (>= 6.0) - restriction: >= net6.0
       Giraffe.ViewEngine (>= 1.4) - restriction: >= net6.0
-      Microsoft.IO.RecyclableMemoryStream (>= 3.0) - restriction: >= net6.0
-      Newtonsoft.Json (>= 13.0.3) - restriction: >= net6.0
-      System.Text.Json (>= 8.0.3) - restriction: >= net6.0
+      Microsoft.IO.RecyclableMemoryStream (>= 3.0.1) - restriction: >= net6.0
+      System.Text.Json (>= 8.0.4) - restriction: >= net6.0
     Giraffe.ViewEngine (1.4)
       FSharp.Core (>= 5.0) - restriction: >= netstandard2.0
     Google.Api.CommonProtos (2.15) - restriction: >= netstandard2.1
@@ -98,7 +97,7 @@ NUGET
       System.Management (>= 7.0.2) - restriction: || (>= net462) (>= netstandard2.0)
     Google.Apis.Core (1.68) - restriction: || (>= net462) (>= netstandard2.0)
       Newtonsoft.Json (>= 13.0.3) - restriction: || (>= net462) (>= netstandard2.0)
-    Google.Apis.Storage.v1 (1.68.0.3463) - restriction: || (>= net462) (>= netstandard2.0)
+    Google.Apis.Storage.v1 (1.68.0.3474) - restriction: || (>= net462) (>= netstandard2.0)
       Google.Apis (>= 1.68) - restriction: || (>= net462) (>= netstandard2.0)
       Google.Apis.Auth (>= 1.68) - restriction: || (>= net462) (>= netstandard2.0)
     Google.Cloud.Logging.Type (4.2) - restriction: >= netstandard2.1
@@ -115,16 +114,16 @@ NUGET
     Google.Protobuf (3.27.2) - restriction: >= netstandard2.1
       System.Memory (>= 4.5.3) - restriction: || (>= net45) (&& (< net5.0) (>= netstandard2.0)) (&& (>= netstandard1.1) (< netstandard2.0))
       System.Runtime.CompilerServices.Unsafe (>= 4.5.2) - restriction: && (< net45) (< net5.0) (>= netstandard2.0)
-    Grpc.Auth (2.63) - restriction: >= netstandard2.1
+    Grpc.Auth (2.64) - restriction: >= netstandard2.1
       Google.Apis.Auth (>= 1.46) - restriction: || (>= net462) (>= netstandard2.0)
-      Grpc.Core.Api (>= 2.63) - restriction: || (>= net462) (>= netstandard2.0)
-    Grpc.Core.Api (2.63) - restriction: >= netstandard2.1
-    Grpc.Net.Client (2.63) - restriction: >= netstandard2.1
-      Grpc.Net.Common (>= 2.63) - restriction: || (>= net462) (>= netstandard2.0)
+      Grpc.Core.Api (>= 2.64) - restriction: || (>= net462) (>= netstandard2.0)
+    Grpc.Core.Api (2.64) - restriction: >= netstandard2.1
+    Grpc.Net.Client (2.64) - restriction: >= netstandard2.1
+      Grpc.Net.Common (>= 2.64) - restriction: || (>= net462) (>= netstandard2.0)
       Microsoft.Extensions.Logging.Abstractions (>= 6.0) - restriction: || (>= net462) (>= netstandard2.0)
       System.Diagnostics.DiagnosticSource (>= 6.0.1) - restriction: || (>= net462) (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
-    Grpc.Net.Common (2.63) - restriction: >= netstandard2.1
-      Grpc.Core.Api (>= 2.63) - restriction: >= netstandard2.0
+    Grpc.Net.Common (2.64) - restriction: >= netstandard2.1
+      Grpc.Core.Api (>= 2.64) - restriction: >= netstandard2.0
     Humanizer.Core (2.14.1) - restriction: >= net8.0
     Libuv (1.10) - restriction: >= net6.0
       Microsoft.NETCore.Platforms (>= 1.0.1) - restriction: >= netstandard1.0
@@ -1175,7 +1174,7 @@ NUGET
       Microsoft.Identity.Client (>= 4.61.3) - restriction: >= netstandard2.0
       System.IO.FileSystem.AccessControl (>= 5.0) - restriction: && (< net6.0) (>= netstandard2.0)
       System.Security.Cryptography.ProtectedData (>= 4.5) - restriction: >= netstandard2.0
-    Microsoft.IdentityModel.Abstractions (7.6.3) - restriction: >= netcoreapp2.2
+    Microsoft.IdentityModel.Abstractions (8.0) - restriction: >= netcoreapp2.2
     Microsoft.IdentityModel.Clients.ActiveDirectory (5.3) - restriction: >= netcoreapp2.2
       Microsoft.CSharp (>= 4.3) - restriction: && (< monoandroid8.1) (< net45) (>= netstandard1.3) (< xamarinios)
       NETStandard.Library (>= 1.6.1) - restriction: && (< monoandroid8.1) (< net45) (>= netstandard1.3) (< xamarinios)
@@ -1192,26 +1191,26 @@ NUGET
       System.Xml.XmlDocument (>= 4.3) - restriction: && (< monoandroid8.1) (< net45) (>= netstandard1.3) (< xamarinios)
       Xamarin.Android.Support.CustomTabs (>= 27.0.2.1) - restriction: >= monoandroid8.1
       Xamarin.Android.Support.v7.AppCompat (>= 27.0.2.1) - restriction: >= monoandroid8.1
-    Microsoft.IdentityModel.JsonWebTokens (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Tokens (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-    Microsoft.IdentityModel.Logging (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Abstractions (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-    Microsoft.IdentityModel.Protocols (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Tokens (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-    Microsoft.IdentityModel.Protocols.OpenIdConnect (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Protocols (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-      System.IdentityModel.Tokens.Jwt (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-    Microsoft.IdentityModel.Protocols.WsFederation (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Protocols (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-      Microsoft.IdentityModel.Tokens.Saml (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-      Microsoft.IdentityModel.Xml (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-    Microsoft.IdentityModel.Tokens (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Logging (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-    Microsoft.IdentityModel.Tokens.Saml (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Tokens (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-      Microsoft.IdentityModel.Xml (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-    Microsoft.IdentityModel.Xml (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.Tokens (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
+    Microsoft.IdentityModel.JsonWebTokens (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Tokens (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+    Microsoft.IdentityModel.Logging (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Abstractions (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+    Microsoft.IdentityModel.Protocols (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Tokens (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+    Microsoft.IdentityModel.Protocols.OpenIdConnect (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Protocols (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+      System.IdentityModel.Tokens.Jwt (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+    Microsoft.IdentityModel.Protocols.WsFederation (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Protocols (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+      Microsoft.IdentityModel.Tokens.Saml (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+      Microsoft.IdentityModel.Xml (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+    Microsoft.IdentityModel.Tokens (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Logging (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+    Microsoft.IdentityModel.Tokens.Saml (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Tokens (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+      Microsoft.IdentityModel.Xml (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+    Microsoft.IdentityModel.Xml (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.Tokens (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
     Microsoft.IO.RecyclableMemoryStream (3.0.1) - restriction: >= net6.0
     Microsoft.Net.Http.Headers (8.0.7) - restriction: >= netcoreapp2.2
       Microsoft.Extensions.Primitives (>= 8.0) - restriction: >= net8.0
@@ -1550,9 +1549,9 @@ NUGET
       System.Runtime (>= 4.3) - restriction: && (< monoandroid) (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
       System.Runtime.Extensions (>= 4.3) - restriction: && (< monoandroid) (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
       System.Runtime.InteropServices (>= 4.3) - restriction: && (< monoandroid) (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
-    System.IdentityModel.Tokens.Jwt (7.6.3) - restriction: >= net8.0
-      Microsoft.IdentityModel.JsonWebTokens (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
-      Microsoft.IdentityModel.Tokens (>= 7.6.3) - restriction: || (&& (>= net461) (< netstandard2.0)) (&& (< net461) (>= netstandard2.0)) (>= net462) (>= net6.0)
+    System.IdentityModel.Tokens.Jwt (8.0) - restriction: >= net8.0
+      Microsoft.IdentityModel.JsonWebTokens (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
+      Microsoft.IdentityModel.Tokens (>= 8.0) - restriction: || (>= net462) (>= netstandard2.0)
     System.IO (4.3) - restriction: || (&& (< monoandroid) (>= netcoreapp2.2) (< netstandard1.3)) (&& (< monoandroid) (>= netcoreapp2.2) (< netstandard1.6)) (&& (>= netcoreapp2.2) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))
       Microsoft.NETCore.Platforms (>= 1.1) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.5) (< win8) (< wpa81)) (&& (< monotouch) (< net45) (>= netstandard1.5) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))
       Microsoft.NETCore.Targets (>= 1.1) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.5) (< win8) (< wpa81)) (&& (< monotouch) (< net45) (>= netstandard1.5) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))

@@ -241,14 +241,27 @@ body {
 
         #text-footnotes {
 
-            .footdef .footblock {
+            .footdef {
                 display: flex;
-                flex-direction: row;
-                justify-content: center;
+                flex-flow: row nowrap;
+                justify-content: flex-start;
                 align-items: center;
                 gap: 1em;
-            }
+                max-width: 95%;
 
+                .footnum {
+                    flex: 1 0 auto;
+                    align-self: start;
+                    padding-top: 1em;
+                }
+
+                .footblock {
+                    .footpara {
+                        flex: 10 1 auto;
+                        flex-flow: row wrap;
+                    }
+                }
+            }
         }
     }
 }
