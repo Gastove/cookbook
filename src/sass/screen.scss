@@ -251,14 +251,17 @@ body {
 
                 .footnum {
                     flex: 1 0 auto;
+                    flex-flow: column nowrap;
                     align-self: start;
                     padding-top: 1em;
+                    max-width: 1em;
                 }
-
+                
                 .footblock {
+
                     .footpara {
                         flex: 10 1 auto;
-                        flex-flow: row wrap;
+                        flex-flow: column nowrap;
                     }
                 }
             }
